@@ -1,0 +1,26 @@
+name: Publish inventory source
+
+on:
+  push:
+    paths:
+      - inventory-source.tar.gz
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace application source
+        run: |
+          mkdir /tmp/inventory-source
+          tar -xzf inventory-source.tar.gz -C /tmp/inventory-source
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/inventory-source/. .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Prepare inventory site for Vercel"
+          git push
