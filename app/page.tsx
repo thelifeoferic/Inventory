@@ -3,7 +3,16 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { conexPhotos, locations, type LocationDefinition } from "@/lib/inventory-data";
+import {
+  conexPhotos,
+  locations,
+  roomMinibarSeedItems,
+  seedItems,
+  type LocationDefinition,
+} from "@/lib/inventory-data";
+import { housekeepingSeedItems } from "@/lib/housekeeping-data";
+import { guestRoomSeedItems } from "@/lib/guest-room-data";
+import { propertySeedItems } from "@/lib/property-data";
 
 type Item = {
   id: number;
@@ -32,6 +41,28 @@ type Memory = {
 };
 
 type ItemDraft = Omit<Item, "id" | "createdAt" | "updatedAt">;
+
+const inventoryStorageKey = "hotel-wren-inventory-v1";
+const memoryStorageKey = "hotel-wren-inventory-memory-v1";
+
+function seededInventory(): Item[] {
+  const timestamp = new Date().toISOString();
+  const completeSeed = [
+    ...seedItems,
+    ...roomMinibarSeedItems,
+    ...housekeepingSeedItems,
+    ...guestRoomSeedItems,
+    ...propertySeedItems,
+  ];
+
+  return completeSeed.map((item, index) => ({
+    id: index + 1,
+    reorderUrl: "",
+    ...item,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }));
+}
 
 const emptyDraft = (space = "CONEX", zone = "Entry"): ItemDraft => ({
   name: "",
@@ -210,31 +241,37 @@ export default function Home() {
   const [generalMemorySpace, setGeneralMemorySpace] = useState("CONEX");
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  async function loadData() {
+  function loadData() {
     setLoading(true);
     setError("");
     try {
-      const [itemsResponse, memoriesResponse] = await Promise.all([
-        fetch("/api/inventory", { cache: "no-store" }),
-        fetch("/api/memories", { cache: "no-store" }),
-      ]);
-      const itemData = await itemsResponse.json() as { items?: Item[]; error?: string };
-      const memoryData = await memoriesResponse.json() as { memories?: Memory[]; error?: string };
-      if (!itemsResponse.ok) throw new Error(itemData.error || "Inventory could not be loaded.");
-      setItems(itemData.items || []);
-      if (memoriesResponse.ok) setMemories(memoryData.memories || []);
+      const savedItems = window.localStorage.getItem(inventoryStorageKey);
+      const savedMemories = window.localStorage.getItem(memoryStorageKey);
+      setItems(savedItems ? JSON.parse(savedItems) as Item[] : seededInventory());
+      setMemories(savedMemories ? JSON.parse(savedMemories) as Memory[] : []);
+      setHydrated(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Inventory could not be loaded.");
+      setItems(seededInventory());
+      setMemories([]);
+      setHydrated(true);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadData(), 0);
+    const timer = window.setTimeout(loadData, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(inventoryStorageKey, JSON.stringify(items));
+    window.localStorage.setItem(memoryStorageKey, JSON.stringify(memories));
+  }, [hydrated, items, memories]);
 
   const currentLocation = locations.find((location) => location.name === selectedSpace) || locations[0];
   const currentItems = useMemo(
@@ -285,20 +322,24 @@ export default function Home() {
     setDraft((current) => ({ ...current, space, zone: location?.zones[0] || "Entry" }));
   }
 
-  async function submitNewItem(event: FormEvent) {
+  function submitNewItem(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
     try {
-      const response = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
-      });
-      const data = await response.json() as { item?: Item; error?: string };
-      if (!response.ok || !data.item) throw new Error(data.error || "Item could not be added.");
-      setItems((current) => [...current, data.item as Item]);
+      if (!draft.name.trim() || !draft.space.trim() || !draft.zone.trim()) {
+        throw new Error("Name, space and map zone are required.");
+      }
+      const timestamp = new Date().toISOString();
+      const item: Item = {
+        ...draft,
+        name: draft.name.trim(),
+        id: items.reduce((highest, current) => Math.max(highest, current.id), 0) + 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      setItems((current) => [...current, item]);
       setAddOpen(false);
-      setSelectedSpace(data.item.space);
+      setSelectedSpace(item.space);
       setActiveZone("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Item could not be added.");
@@ -307,20 +348,14 @@ export default function Home() {
     }
   }
 
-  async function saveItem(event: FormEvent) {
+  function saveItem(event: FormEvent) {
     event.preventDefault();
     if (!selectedItem) return;
     setSaving(true);
     try {
-      const response = await fetch("/api/inventory", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedItem.id, ...draft }),
-      });
-      const data = await response.json() as { item?: Item; error?: string };
-      if (!response.ok || !data.item) throw new Error(data.error || "Changes could not be saved.");
-      setItems((current) => current.map((item) => item.id === data.item?.id ? data.item as Item : item));
-      setSelectedItem(data.item);
+      const item: Item = { ...selectedItem, ...draft, updatedAt: new Date().toISOString() };
+      setItems((current) => current.map((currentItem) => currentItem.id === item.id ? item : currentItem));
+      setSelectedItem(item);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Changes could not be saved.");
     } finally {
@@ -328,19 +363,21 @@ export default function Home() {
     }
   }
 
-  async function addMemory(note: string, space: string, itemId: number | null) {
+  function addMemory(note: string, space: string, itemId: number | null) {
     if (!note.trim()) return;
     setSaving(true);
     try {
-      const response = await fetch("/api/memories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note, space, itemId }),
-      });
-      const data = await response.json() as { memory?: Memory; error?: string };
-      if (!response.ok || !data.memory) throw new Error(data.error || "Memory could not be saved.");
       const itemName = items.find((item) => item.id === itemId)?.name || null;
-      setMemories((current) => [{ ...data.memory as Memory, itemName }, ...current]);
+      const memory: Memory = {
+        id: memories.reduce((highest, current) => Math.max(highest, current.id), 0) + 1,
+        itemId,
+        itemName,
+        space,
+        note: note.trim(),
+        createdBy: "Wren team",
+        createdAt: new Date().toISOString(),
+      };
+      setMemories((current) => [memory, ...current]);
       setItemMemory("");
       setGeneralMemory("");
     } catch (caught) {
