@@ -367,24 +367,43 @@ a { color: inherit; }
 }
 .conex-shelf:hover, .conex-floor-stock:hover, .conex-appliances:hover, .conex-door:hover, .conex-side-door:hover { box-shadow: 10px 10px 0 #d4d4cc, 11px 11px 0 var(--ink); transform: translate(-3px,-3px); }
 .conex-shelf.is-active, .conex-floor-stock.is-active, .conex-appliances.is-active, .conex-door.is-active, .conex-side-door.is-active { background: var(--ink); color: var(--paper); }
-.conex-shelf { padding: 12px; }
-.conex-shelf-name { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.05; position: relative; z-index: 2; }
-.conex-shelf small { bottom: 8px; font-size: 8px; left: 12px; letter-spacing: .08em; position: absolute; text-transform: uppercase; z-index: 2; }
-.conex-levels { bottom: 26px; display: grid; gap: 3px; left: 12px; position: absolute; right: 12px; top: 44px; }
-.conex-levels i { align-items: center; background: #eeeeea; border: 1px solid #aaa9a2; display: flex; font-size: 8px; font-style: normal; justify-content: center; letter-spacing: .04em; overflow: hidden; text-align: center; text-transform: uppercase; }
+.conex-shelf { padding: 0; }
+.conex-shelf-name {
+  align-items: center;
+  border-bottom: 1px solid var(--ink);
+  display: flex;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  inset: 0 0 auto;
+  letter-spacing: .1em;
+  line-height: 1.15;
+  min-height: 42px;
+  padding: 9px 12px 8px;
+  position: absolute;
+  text-transform: uppercase;
+  z-index: 2;
+}
+.conex-shelf small { bottom: 9px; font-size: 8px; left: 12px; letter-spacing: .08em; position: absolute; text-transform: uppercase; z-index: 2; }
+.conex-levels { bottom: 30px; display: grid; gap: 5px; left: 12px; position: absolute; right: 12px; top: 54px; }
+.conex-levels i { align-items: center; background: #eeeeea; border: 1px solid #aaa9a2; display: flex; font-size: 8px; font-style: normal; justify-content: center; letter-spacing: .04em; line-height: 1.1; overflow: hidden; padding: 3px; text-align: center; text-transform: uppercase; }
 .conex-shelf.is-active .conex-levels i { background: #292925; border-color: #77776f; }
+.conex-shelf.is-active .conex-shelf-name { border-color: #77776f; }
 .conex-shelf-front-right { height: 34%; right: 5%; top: 6%; width: 20%; }
 .conex-shelf-mid-right { height: 34%; right: 27%; top: 6%; width: 20%; }
 .conex-shelf-rear-left { height: 34%; left: 6%; top: 6%; width: 19%; }
 .conex-shelf-rear-back { bottom: 13%; left: 2%; top: 13%; width: 11%; }
 .conex-shelf-rear-right { bottom: 6%; height: 34%; left: 6%; width: 19%; }
-.conex-floor-stock { bottom: 8%; left: 29%; min-height: 66px; padding: 10px; width: 15%; }
-.conex-floor-stock span { display:block; font-family: Georgia, "Times New Roman", serif; font-size: 14px; }
+.conex-shelf-rear-back .conex-shelf-name { align-items: flex-start; font-size: 8px; letter-spacing: .07em; min-height: 52px; padding: 10px 8px; }
+.conex-shelf-rear-back .conex-levels { left: 8px; right: 8px; top: 64px; }
+.conex-shelf-rear-back small { left: 8px; }
+.conex-floor-stock { bottom: 8%; display: flex; flex-direction: column; justify-content: space-between; left: 29%; min-height: 72px; padding: 12px; width: 15%; }
+.conex-floor-stock span { display:block; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.05; }
 .conex-floor-stock small { font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
-.conex-appliances { bottom: 6%; display: grid; gap: 5px; grid-template-columns: 1fr 1fr; height: 34%; padding: 10px; right: 19%; width: 22%; }
+.conex-appliances { bottom: 6%; display: grid; gap: 6px; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; height: 34%; padding: 10px; right: 19%; width: 22%; }
 .conex-appliances .conex-table { grid-column: 1 / 3; }
 .conex-appliances > span { align-items:center; background:#ecece7; border:1px solid #aaa; display:flex; font-size:7px; justify-content:center; letter-spacing:.04em; }
-.conex-appliances strong { bottom: 6px; font-size: 8px; font-weight: 700; left: 10px; letter-spacing: .08em; position: absolute; text-transform: uppercase; }
+.conex-appliances strong { font-size: 8px; font-weight: 700; grid-column: 1 / 3; letter-spacing: .08em; line-height: 1.15; padding-top: 2px; position: static; text-transform: uppercase; }
 .conex-appliances.is-active > span { background:#292925; border-color:#77776f; }
 .conex-door { font-size: 8px; letter-spacing:.12em; min-height:130px; padding:9px; right: 0; text-align:center; top: calc(50% - 65px); width: 38px; writing-mode: vertical-rl; }
 .conex-side-door { bottom: 0; font-size: 8px; letter-spacing:.12em; min-height: 32px; padding: 8px 14px; right: 4%; text-align: center; width: 120px; }
@@ -636,11 +655,13 @@ td small { color: var(--muted); margin-top: 4px; max-width: 370px; overflow: hid
   .conex-reference-photo { height: 190px; }
   .conex-u-map { height: 430px; min-width: 820px; }
   .conex-visual { overflow-x: auto; }
-  .conex-shelf-name { font-size: 12px; }
-  .conex-levels { left: 7px; right: 7px; }
+  .conex-shelf-name { font-size: 8px; min-height: 36px; padding: 7px 8px; }
+  .conex-levels { left: 7px; right: 7px; top: 45px; }
   .conex-levels i { font-size: 6px; }
-  .conex-shelf { padding: 8px; }
+  .conex-shelf { padding: 0; }
   .conex-shelf small { left: 8px; }
+  .conex-shelf-rear-back .conex-shelf-name { font-size: 7px; min-height: 45px; padding: 8px 6px; }
+  .conex-shelf-rear-back .conex-levels { left: 6px; right: 6px; top: 53px; }
   .conex-appliances { width: 30%; }
   .conex-door { left: calc(50% - 58px); }
   .compact-row { grid-template-columns: 46px 8px minmax(0, 1fr) 62px 14px; }
