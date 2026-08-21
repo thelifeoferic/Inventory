@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787078924140,
+      "tag": "0000_fixed_firebird",
+      "breakpoints": true
+    }
+  ]
+}
