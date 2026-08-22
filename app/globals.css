@@ -354,6 +354,7 @@ a { color: inherit; }
     repeating-linear-gradient(0deg, rgba(17,17,15,.045) 0 1px, transparent 1px 36px),
     #f1f1eb;
   border: 1px solid #c7c7bf;
+  height: 100%;
   overflow: hidden;
   position: relative;
 }
