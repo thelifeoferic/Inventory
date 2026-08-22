@@ -77,7 +77,9 @@ const conexShelfDefinitions = [
 ] as const;
 
 function normalizeConexZone(zone: string) {
-  return zone === "Rear stock shelf" ? "Parts shelf" : zone;
+  if (zone === "Rear stock shelf") return "Parts shelf";
+  if (zone === "Floor stock / water") return "Floor stock";
+  return zone;
 }
 
 function defaultConexMapSection(zone: string) {
@@ -117,12 +119,15 @@ function inferConexMapSection(item: { name: string; zone: string; mapSection?: s
 }
 
 function normalizeItem(item: Item): Item {
-  const zone = normalizeConexZone(item.zone);
+  const relocatedWater = /^(Cascade Mountain|Mountain Valley Spring) Water Cases$/i.test(item.name);
+  const space = relocatedWater ? "POOL ROOM" : item.space;
+  const zone = relocatedWater ? "Water storage" : normalizeConexZone(item.zone);
   const media = productMedia.find((entry) => entry.matches.test(item.name));
   return {
     ...item,
+    space,
     zone,
-    mapSection: inferConexMapSection({ ...item, zone }),
+    mapSection: space === "CONEX" ? inferConexMapSection({ ...item, zone }) : "",
     photo: item.photo || media?.photo || "",
     reorderUrl: item.reorderUrl || media?.reorderUrl || "",
   };
@@ -228,8 +233,11 @@ function LocationMap({
       {location.kind === "conex" ? (
         <div className="conex-visual">
           <figure className="conex-reference-photo">
-            <img src="/conex/IMG_4317.jpg" alt="Interior view from the Conex entry toward the rear shelving bay" />
+            <img src="/conex/IMG_4282.jpg" alt="Exterior of the long rectangular Conex storage building" />
+            <figcaption>Conex exterior</figcaption>
           </figure>
+          <div className="conex-mobile-guide" aria-hidden="true"><span>Swipe the map</span><strong>→</strong></div>
+          <div className="conex-map-scroll" role="region" aria-label="Scrollable Conex storage map. Swipe right to explore all shelves.">
           <div className="conex-u-map">
             {conexShelfDefinitions.map(({ zone, className, levelLabels }) => {
               const count = items.filter((item) => item.zone === zone).length;
@@ -238,7 +246,7 @@ function LocationMap({
                   className={`${className} ${activeZone === zone ? "is-active" : ""}`}
                   key={zone}
                 >
-                  <button className="conex-shelf-overview" type="button" onClick={() => onZone(zone)} aria-label={`Show all inventory in ${zone}`}>
+                  <button className="conex-shelf-overview" type="button" onClick={() => onZone(zone)} aria-label={`Show all inventory in ${zone}`} aria-pressed={activeZone === zone}>
                     <span className="conex-shelf-name">{zone}</span>
                     <small>{count ? countLabel(count, "item") : "Empty"}</small>
                   </button>
@@ -258,12 +266,12 @@ function LocationMap({
             <span className="conex-aisle" aria-hidden="true">CLEAR AISLE</span>
             <span className="conex-rear-threshold" aria-hidden="true">REAR BAY</span>
             <button
-              className={`conex-floor-stock ${activeZone === "Floor stock / water" ? "is-active" : ""}`}
+              className={`conex-floor-stock ${activeZone === "Floor stock" ? "is-active" : ""}`}
               type="button"
-              onClick={() => onZone("Floor stock / water")}
+              onClick={() => onZone("Floor stock")}
             >
-              <span>Floor stock / water</span>
-              <small>{countLabel(items.filter((item) => item.zone === "Floor stock / water").length, "item")}</small>
+              <span>Floor stock</span>
+              <small>{countLabel(items.filter((item) => item.zone === "Floor stock").length, "item")}</small>
             </button>
             <button
               className={`conex-appliances ${activeZone === "Appliances + table" ? "is-active" : ""}`}
@@ -289,6 +297,7 @@ function LocationMap({
             >
               SIDE ENTRY
             </button>
+          </div>
           </div>
         </div>
       ) : location.kind === "room" ? (
@@ -625,7 +634,7 @@ export default function Home() {
           <input value={search} onChange={(event) => { setSearch(event.target.value); setMasterVisibleCount(30); if (event.target.value) { setView("items"); setMasterInventoryOpen(true); } }} placeholder="Search item, room, zone, or note" />
         </label>
         <select aria-label="Filter by space" value={spaceFilter} onChange={(event) => { setSpaceFilter(event.target.value); setMasterVisibleCount(30); }}>
-          <option>ALL SPACES</option>
+          <option value="ALL SPACES">All</option>
           {locations.map((location) => <option key={location.name}>{location.name}</option>)}
         </select>
         <span className="search-result">{visibleItems.length} results</span>
@@ -824,7 +833,7 @@ export default function Home() {
                 <p className="eyebrow">{mapInventory.zone}{mapInventory.mapSection ? " · Shelf section" : " · Entire area"}</p>
                 <h2 id="map-inventory-title">{mapInventory.mapSection || mapInventory.zone}</h2>
               </div>
-              <button className="close-button" type="button" onClick={() => setMapInventory(null)} aria-label="Close inventory list">×</button>
+              <button className="close-map-button" type="button" onClick={() => setMapInventory(null)} aria-label="Back to the storage map"><span aria-hidden="true">←</span> Map</button>
             </div>
             <div className="map-inventory-summary">
               <span>{countLabel(mapInventoryItems.length, "record")}</span>
