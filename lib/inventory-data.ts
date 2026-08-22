@@ -13,7 +13,7 @@ export const locations: LocationDefinition[] = [
     name: "CONEX",
     group: "Shared spaces",
     description: "",
-    zones: ["Room supplies shelf", "Linen shelf", "Tools shelf", "Rear stock shelf", "Lighting shelf", "Floor stock / water", "Appliances + table", "Entry"],
+    zones: ["Room supplies shelf", "Linen shelf", "Tools shelf", "Parts shelf", "Lighting shelf", "Floor stock", "Appliances + table", "Entry"],
     kind: "conex",
   },
   {
@@ -33,8 +33,8 @@ export const locations: LocationDefinition[] = [
   {
     name: "POOL ROOM",
     group: "Shared spaces",
-    description: "Pool service supplies and exterior guest amenities.",
-    zones: ["Towels", "Sunscreen", "Cups", "Cleaning equipment", "Lost & found"],
+    description: "Pool service supplies, water storage and exterior guest amenities.",
+    zones: ["Towels", "Sunscreen", "Cups", "Water storage", "Cleaning equipment", "Lost & found"],
     kind: "shared",
   },
   {
@@ -87,7 +87,6 @@ const roomMinibarStandard = [
   { name: "Canyon Coffee", unit: "packets", notes: "Known Hotel Wren room amenity. Confirm the room par and physical count." },
   { name: "Bellocq Tea", unit: "sachets", notes: "Known Hotel Wren room amenity. Confirm varieties, room par and physical count." },
   { name: "Mountain Valley Spring Water", unit: "bottles", notes: "Brand is present in Hotel Wren stock. Confirm the minibar bottle format and room par." },
-  { name: "Additional minibar products", unit: "items", notes: "Use this temporary record to itemize every remaining beverage and snack during the first room count." },
 ];
 
 export const roomMinibarSeedItems = Array.from({ length: 12 }, (_, index) => {
@@ -115,8 +114,8 @@ export const seedItems = [
   { name: "Smooth Mattress Encasements — Queen", space: "CONEX", zone: "Linen shelf", quantity: 6, par: 6, unit: "encasements", status: "Confirmed", photo: "/conex/IMG_4299.jpg", notes: "Quantity taken from handwritten carton label." },
   { name: "Smooth Mattress Encasements — King", space: "CONEX", zone: "Linen shelf", quantity: 4, par: 4, unit: "encasements", status: "Confirmed", photo: "/conex/IMG_4299.jpg", notes: "Quantity taken from handwritten carton label." },
   { name: "Packaged White Linens", space: "CONEX", zone: "Linen shelf", quantity: 0, par: 0, unit: "bundles", status: "Count needed", photo: "/conex/IMG_4298.jpg", notes: "Visible but the package labels do not provide a reliable total." },
-  { name: "Cascade Mountain Water Cases", space: "CONEX", zone: "Floor stock / water", quantity: 4, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Four cases appear visible in the rear stock photo." },
-  { name: "Mountain Valley Spring Water Cases", space: "CONEX", zone: "Floor stock / water", quantity: 5, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Five cases appear visible in the rear stock photo.", reorderUrl: "https://www.mountainvalleyspring.com/" },
+  { name: "Cascade Mountain Water Cases", space: "POOL ROOM", zone: "Water storage", quantity: 4, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Relocated from the Conex to Pool Room storage. Confirm the current case count." },
+  { name: "Mountain Valley Spring Water Cases", space: "POOL ROOM", zone: "Water storage", quantity: 5, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Relocated from the Conex to Pool Room storage. Confirm the current case count.", reorderUrl: "https://www.mountainvalleyspring.com/" },
   { name: "Decanters / Bar Glassware Bin", space: "CONEX", zone: "Room supplies shelf", quantity: 1, par: 1, unit: "bin", status: "Count needed", photo: "/conex/IMG_4287.jpg", notes: "Bin is identified; individual pieces still need to be counted." },
   { name: "Serving Equipment Bin", space: "CONEX", zone: "Room supplies shelf", quantity: 1, par: 1, unit: "bin", status: "Count needed", photo: "/conex/IMG_4286.jpg", notes: "Bin contains wood and serving objects; itemize during physical count." },
   { name: "Compostable Bowls / Plates", space: "CONEX", zone: "Room supplies shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4283.jpg", notes: "Multiple stacks are visible; exact count is not legible." },
@@ -125,6 +124,6 @@ export const seedItems = [
   { name: "Conex work table", space: "CONEX", zone: "Appliances + table", quantity: 1, par: 1, unit: "each", status: "Confirmed", photo: "/conex/IMG_4282.jpg", notes: "Work surface beside the roll-up entry." },
   { name: "Light fixtures / lighting", space: "CONEX", zone: "Lighting shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Stored on the right side of the three-level rear shelving bay." },
   { name: "Tools", space: "CONEX", zone: "Tools shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Stored on the left side of the three-level rear shelving bay." },
-  { name: "Electrical, hardware + small parts", space: "CONEX", zone: "Rear stock shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Mixed stock on the back run of the rear shelving bay; itemize during the physical count." },
+  { name: "Electrical, hardware + small parts", space: "CONEX", zone: "Parts shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Mixed stock on the back run of the rear shelving bay; itemize during the physical count." },
   ...roomMinibarSeedItems,
 ] as const;
