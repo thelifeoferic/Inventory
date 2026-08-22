@@ -13,7 +13,7 @@ export const locations: LocationDefinition[] = [
     name: "CONEX",
     group: "Shared spaces",
     description: "",
-    zones: ["Room supplies shelf", "Linen shelf", "Tools shelf", "Parts shelf", "Lighting shelf", "Floor stock / water", "Appliances + table", "Entry"],
+    zones: ["Room supplies shelf", "Linen shelf", "Tools shelf", "Parts shelf", "Lighting shelf", "Floor stock", "Appliances + table", "Entry"],
     kind: "conex",
   },
   {
@@ -33,8 +33,8 @@ export const locations: LocationDefinition[] = [
   {
     name: "POOL ROOM",
     group: "Shared spaces",
-    description: "Pool service supplies and exterior guest amenities.",
-    zones: ["Towels", "Sunscreen", "Cups", "Cleaning equipment", "Lost & found"],
+    description: "Pool service supplies, water storage and exterior guest amenities.",
+    zones: ["Towels", "Sunscreen", "Cups", "Water storage", "Cleaning equipment", "Lost & found"],
     kind: "shared",
   },
   {
@@ -114,8 +114,8 @@ export const seedItems = [
   { name: "Smooth Mattress Encasements — Queen", space: "CONEX", zone: "Linen shelf", quantity: 6, par: 6, unit: "encasements", status: "Confirmed", photo: "/conex/IMG_4299.jpg", notes: "Quantity taken from handwritten carton label." },
   { name: "Smooth Mattress Encasements — King", space: "CONEX", zone: "Linen shelf", quantity: 4, par: 4, unit: "encasements", status: "Confirmed", photo: "/conex/IMG_4299.jpg", notes: "Quantity taken from handwritten carton label." },
   { name: "Packaged White Linens", space: "CONEX", zone: "Linen shelf", quantity: 0, par: 0, unit: "bundles", status: "Count needed", photo: "/conex/IMG_4298.jpg", notes: "Visible but the package labels do not provide a reliable total." },
-  { name: "Cascade Mountain Water Cases", space: "CONEX", zone: "Floor stock / water", quantity: 4, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Four cases appear visible in the rear stock photo." },
-  { name: "Mountain Valley Spring Water Cases", space: "CONEX", zone: "Floor stock / water", quantity: 5, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Five cases appear visible in the rear stock photo.", reorderUrl: "https://www.mountainvalleyspring.com/" },
+  { name: "Cascade Mountain Water Cases", space: "POOL ROOM", zone: "Water storage", quantity: 4, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Relocated from the Conex to Pool Room storage. Confirm the current case count." },
+  { name: "Mountain Valley Spring Water Cases", space: "POOL ROOM", zone: "Water storage", quantity: 5, par: 6, unit: "cases", status: "Photo estimate", photo: "/conex/IMG_4306.jpg", notes: "Relocated from the Conex to Pool Room storage. Confirm the current case count.", reorderUrl: "https://www.mountainvalleyspring.com/" },
   { name: "Decanters / Bar Glassware Bin", space: "CONEX", zone: "Room supplies shelf", quantity: 1, par: 1, unit: "bin", status: "Count needed", photo: "/conex/IMG_4287.jpg", notes: "Bin is identified; individual pieces still need to be counted." },
   { name: "Serving Equipment Bin", space: "CONEX", zone: "Room supplies shelf", quantity: 1, par: 1, unit: "bin", status: "Count needed", photo: "/conex/IMG_4286.jpg", notes: "Bin contains wood and serving objects; itemize during physical count." },
   { name: "Compostable Bowls / Plates", space: "CONEX", zone: "Room supplies shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4283.jpg", notes: "Multiple stacks are visible; exact count is not legible." },
