@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fff"/>
+  <rect x="36" y="36" width="1128" height="558" fill="none" stroke="#11110f" stroke-width="2"/>
+  <path d="M70 470H1130M800 70V560" stroke="#d9d9d2"/>
+  <text x="78" y="105" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" letter-spacing="6" fill="#11110f">HOTEL WREN</text>
+  <text x="72" y="300" font-family="Georgia,serif" font-size="126" letter-spacing="-7" fill="#11110f">Inventory</text>
+  <text x="78" y="390" font-family="Arial,Helvetica,sans-serif" font-size="25" fill="#66665f">Every item. Every space. One clear memory.</text>
+  <g fill="none" stroke="#11110f" stroke-width="2">
+    <rect x="840" y="130" width="130" height="100"/><rect x="980" y="130" width="130" height="100"/>
+    <rect x="840" y="240" width="270" height="100"/><rect x="840" y="350" width="130" height="100"/>
+    <rect x="980" y="350" width="130" height="100"/>
+  </g>
+  <text x="905" y="186" font-family="Arial" font-size="14" text-anchor="middle">ROOM</text>
+  <text x="1045" y="186" font-family="Arial" font-size="14" text-anchor="middle">BATH</text>
+  <text x="975" y="296" font-family="Arial" font-size="14" text-anchor="middle">BED / LIVING</text>
+  <text x="905" y="406" font-family="Arial" font-size="14" text-anchor="middle">ENTRY</text>
+  <text x="1045" y="406" font-family="Arial" font-size="14" text-anchor="middle">PATIO</text>
+</svg>
