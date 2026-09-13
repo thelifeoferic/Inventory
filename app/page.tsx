@@ -2,18 +2,22 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import LowStockReport from "./low-stock-report";
+import StockControls from "./stock-controls";
+
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   conexPhotos,
   locations,
   seedItems,
-  type LocationDefinition,
 } from "@/lib/inventory-data";
 import { housekeepingSeedItems } from "@/lib/housekeeping-data";
 import { guestRoomSeedItems } from "@/lib/guest-room-data";
 import { propertySeedItems } from "@/lib/property-data";
 
 type Item = {
+  vendor?: string;
+  unitCost?: number | null;
   id: number;
   name: string;
   space: string;
@@ -41,6 +45,9 @@ type Memory = {
 };
 
 type ItemDraft = Omit<Item, "id" | "createdAt" | "updatedAt">;
+
+
+
 
 const inventoryStorageKey = "hotel-wren-inventory-v1";
 const memoryStorageKey = "hotel-wren-inventory-memory-v1";
@@ -121,7 +128,7 @@ function inferConexMapSection(item: { name: string; zone: string; mapSection?: s
 function normalizeItem(item: Item): Item {
   const relocatedWater = /^(Cascade Mountain|Mountain Valley Spring) Water Cases$/i.test(item.name);
   const space = relocatedWater ? "POOL ROOM" : item.space;
-  const zone = relocatedWater ? "Water storage" : normalizeConexZone(item.zone);
+  const zone = relocatedWater ? "Water storage" : /^ROOM \d+$/.test(space) ? ({ Minibar: "Mini Bar", Furnishings: "Permanent Fixtures", Fixtures: "Permanent Fixtures", Linens: "Guest Amenities" }[item.zone] || item.zone) : normalizeConexZone(item.zone);
   const media = productMedia.find((entry) => entry.matches.test(item.name));
   return {
     ...item,
@@ -211,154 +218,6 @@ function ProgressiveLoadMore({ visibleCount, total, onLoadMore }: { visibleCount
   );
 }
 
-function LocationMap({
-  location,
-  activeZone,
-  items,
-  onZone,
-  onMapSection,
-}: {
-  location: LocationDefinition;
-  activeZone: string;
-  items: Item[];
-  onZone: (zone: string) => void;
-  onMapSection: (zone: string, mapSection: string) => void;
-}) {
-  return (
-    <div className={`location-map map-${location.kind}`} aria-label={`${location.name} inventory map`}>
-      <div className="map-caption">
-        <span>{location.name}</span>
-        <span>{location.kind === "room" ? "Isometric room plan" : "Clickable spatial map"}</span>
-      </div>
-      {location.kind === "conex" ? (
-        <div className="conex-visual">
-          <figure className="conex-reference-photo">
-            <img src="/conex/IMG_4282.jpg" alt="Exterior of the long rectangular Conex storage building" />
-            <figcaption>Conex exterior</figcaption>
-          </figure>
-          <div className="conex-mobile-guide" aria-hidden="true"><span>Swipe the map</span><strong>→</strong></div>
-          <div className="conex-map-scroll" role="region" aria-label="Scrollable Conex storage map. Swipe right to explore all shelves.">
-          <div className="conex-u-map">
-            {conexShelfDefinitions.map(({ zone, className, levelLabels }) => {
-              const count = items.filter((item) => item.zone === zone).length;
-              return (
-                <div
-                  className={`${className} ${activeZone === zone ? "is-active" : ""}`}
-                  key={zone}
-                >
-                  <button className="conex-shelf-overview" type="button" onClick={() => onZone(zone)} aria-label={`Show all inventory in ${zone}`} aria-pressed={activeZone === zone}>
-                    <span className="conex-shelf-name">{zone}</span>
-                    <small>{count ? countLabel(count, "item") : "Empty"}</small>
-                  </button>
-                  <div className="conex-levels">
-                    {levelLabels.map((label) => {
-                      const levelCount = items.filter((item) => item.zone === zone && item.mapSection === label).length;
-                      return (
-                        <button key={label} type="button" onClick={() => onMapSection(zone, label)} aria-label={`Show ${label} inventory in ${zone}`}>
-                          <span>{label}</span><small>{levelCount}</small>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-            <span className="conex-aisle" aria-hidden="true">CLEAR AISLE</span>
-            <span className="conex-rear-threshold" aria-hidden="true">REAR BAY</span>
-            <button
-              className={`conex-floor-stock ${activeZone === "Floor stock" ? "is-active" : ""}`}
-              type="button"
-              onClick={() => onZone("Floor stock")}
-            >
-              <span>Floor stock</span>
-              <small>{countLabel(items.filter((item) => item.zone === "Floor stock").length, "item")}</small>
-            </button>
-            <button
-              className={`conex-appliances ${activeZone === "Appliances + table" ? "is-active" : ""}`}
-              type="button"
-              onClick={() => onZone("Appliances + table")}
-            >
-              <span className="conex-mini-fridge" aria-hidden="true">FRIDGE</span>
-              <span className="conex-microwave" aria-hidden="true">MICROWAVE</span>
-              <span className="conex-table" aria-hidden="true">TABLE</span>
-              <strong>Appliances + table</strong>
-            </button>
-            <button
-              className={`conex-door ${activeZone === "Entry" ? "is-active" : ""}`}
-              type="button"
-              onClick={() => onZone("Entry")}
-            >
-              ROLL-UP DOOR
-            </button>
-            <button
-              className={`conex-side-door ${activeZone === "Entry" ? "is-active" : ""}`}
-              type="button"
-              onClick={() => onZone("Entry")}
-            >
-              SIDE ENTRY
-            </button>
-          </div>
-          </div>
-        </div>
-      ) : location.kind === "room" ? (
-        <div className="map-scene room-product-scene">
-          <div className="map-back-wall" aria-hidden="true" />
-          <div className="map-side-wall" aria-hidden="true" />
-          <div className="map-grid">
-            {location.zones.map((zone, index) => {
-              const zoneItems = items.filter((item) => item.zone === zone);
-              const featured = zoneItems.find((item) => item.photo) || zoneItems[0];
-              return (
-                <button
-                  className={`map-zone room-feature-card zone-${index + 1} ${activeZone === zone ? "is-active" : ""}`}
-                  key={zone}
-                  type="button"
-                  onClick={() => onZone(activeZone === zone ? "" : zone)}
-                >
-                  <span className="room-feature-media">
-                    {featured?.photo ? <img src={featured.photo} alt="" /> : <i aria-hidden="true">Image coming soon</i>}
-                  </span>
-                  <span className="room-feature-copy">
-                    <small>{zone}</small>
-                    <strong>{featured?.name || "No items recorded yet"}</strong>
-                    <em>{zoneItems.length ? countLabel(zoneItems.length, "item") : "Add first item"} <b aria-hidden="true">→</b></em>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="map-scene">
-          <div className="map-back-wall" aria-hidden="true" />
-          <div className="map-side-wall" aria-hidden="true" />
-          <div className="map-grid">
-            {location.zones.map((zone, index) => {
-              const count = items.filter((item) => item.zone === zone).length;
-              return (
-                <button
-                  className={`map-zone zone-${index + 1} ${activeZone === zone ? "is-active" : ""}`}
-                  key={zone}
-                  type="button"
-                  onClick={() => onZone(activeZone === zone ? "" : zone)}
-                >
-                  <i className="zone-shape" aria-hidden="true" />
-                  <span>{zone}</span>
-                  <small>{count ? countLabel(count, "item") : "Empty"}</small>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      <div className="map-orientation" aria-hidden="true">
-        <span>BACK WALL</span>
-        <span>{location.kind === "conex" ? "ROLL-UP ENTRY" : "ENTRY / PATH"}</span>
-      </div>
-    </div>
-  );
-}
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="field">
@@ -373,7 +232,7 @@ export default function Home() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"items" | "spaces" | "memory">("spaces");
+  const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("spaces");
   const [search, setSearch] = useState("");
   const [spaceFilter, setSpaceFilter] = useState("ALL SPACES");
   const [selectedSpace, setSelectedSpace] = useState("CONEX");
@@ -386,9 +245,7 @@ export default function Home() {
   const [generalMemorySpace, setGeneralMemorySpace] = useState("CONEX");
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const [mapInventory, setMapInventory] = useState<{ zone: string; mapSection: string } | null>(null);
-  const [spaceInventoryOpen, setSpaceInventoryOpen] = useState(false);
   const [masterInventoryOpen, setMasterInventoryOpen] = useState(false);
-  const [spaceVisibleCount, setSpaceVisibleCount] = useState(18);
   const [masterVisibleCount, setMasterVisibleCount] = useState(30);
   const [saving, setSaving] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -444,16 +301,14 @@ export default function Home() {
       return matchesSpace && matchesSearch;
     });
   }, [items, search, spaceFilter]);
-  const currentFilteredItems = useMemo(
-    () => currentItems.filter((item) => !activeZone || item.zone === activeZone),
-    [activeZone, currentItems]
-  );
   const lowStock = items.filter((item) => item.par > 0 && item.quantity < item.par).length;
   const countNeeded = items.filter((item) => item.status === "Count needed").length;
 
   function openItem(item: Item) {
     setSelectedItem(item);
     setDraft({
+      vendor: item.vendor ?? "",
+      unitCost: item.unitCost ?? null,
       name: item.name,
       space: item.space,
       zone: item.zone,
@@ -521,6 +376,7 @@ export default function Home() {
     if (!selectedItem) return;
     setSaving(true);
     try {
+      if (draft.unitCost != null && (!Number.isFinite(draft.unitCost) || draft.unitCost < 0)) throw new Error("Unit cost must be zero or greater.");
       const item: Item = { ...selectedItem, ...draft, updatedAt: new Date().toISOString() };
       setItems((current) => current.map((currentItem) => currentItem.id === item.id ? item : currentItem));
       setSelectedItem(item);
@@ -593,8 +449,14 @@ export default function Home() {
           <Field label="Par level">
             <input type="number" min="0" value={draft.par} onChange={(event) => changeDraft("par", Number(event.target.value))} />
           </Field>
+          <Field label="Unit cost ($ per inventory unit)">
+            <input type="number" min="0" step="0.01" value={draft.unitCost ?? ""} placeholder="Not recorded" onChange={event => changeDraft("unitCost", event.target.value === "" ? null : Number(event.target.value))} />
+          </Field>
           <Field label="Unit">
             <input value={draft.unit} onChange={(event) => changeDraft("unit", event.target.value)} placeholder="each, case, roll…" />
+          </Field>
+          <Field label="Preferred vendor">
+            <input value={draft.vendor ?? ""} onChange={event => changeDraft("vendor", event.target.value)} placeholder="Where we order this item" />
           </Field>
           <Field label="Reorder link (optional)">
             <input type="url" value={draft.reorderUrl} onChange={(event) => changeDraft("reorderUrl", event.target.value)} placeholder="https://…" />
@@ -621,11 +483,12 @@ export default function Home() {
           <span>Inventory</span>
         </button>
         <nav className="topnav" aria-label="Inventory views">
-          <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>Space maps</button>
+          <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>Spaces</button>
           <button className={view === "items" ? "active" : ""} onClick={() => setView("items")}>All items</button>
           <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
+          <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Stock & purchasing{lowStock ? ` (${lowStock})` : ""}</button>
         </nav>
-        <button className="button button-dark" type="button" onClick={() => openNewItem()}>Add item</button>
+        <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
       </header>
 
       <section className="searchbar" aria-label="Inventory search">
@@ -651,7 +514,7 @@ export default function Home() {
         <div><span>Total records</span><strong>{items.length}</strong></div>
         <div><span>Below par</span><strong>{lowStock}</strong></div>
         <div><span>Counts needed</span><strong>{countNeeded}</strong></div>
-        <div><span>Mapped spaces</span><strong>{locations.length}</strong></div>
+        <div><span>Spaces</span><strong>{locations.length}</strong></div>
       </section>
 
       {view === "spaces" && (
@@ -667,9 +530,9 @@ export default function Home() {
                       className={selectedSpace === location.name ? "active" : ""}
                       key={location.name}
                       type="button"
-                      onClick={() => { setSelectedSpace(location.name); setActiveZone(location.kind === "room" ? "Minibar" : ""); setSpaceInventoryOpen(false); setSpaceVisibleCount(18); }}
+                      onClick={() => { setSelectedSpace(location.name); setActiveZone(""); }}
                     >
-                      <span>{location.name}</span><small>{count}</small>
+                      <span>{location.name}{location.kind === "room" && <em className="room-type-label">{location.description}</em>}</span><small>{count}</small>
                     </button>
                   );
                 })}
@@ -680,72 +543,39 @@ export default function Home() {
           <section className="space-content">
             <div className="space-heading">
               <div>
-                <p className="eyebrow">Inventory map</p>
-                <h1>{currentLocation.name}</h1>
+                <p className="eyebrow">Inventory</p>
+                <h1>{currentLocation.name}{currentLocation.name === "ROOM 12" ? " (ADA)" : ""}</h1>
                 <p>{currentLocation.description}</p>
               </div>
               <button className="button" type="button" onClick={() => openNewItem(selectedSpace, activeZone || currentLocation.zones[0])}>Add here</button>
             </div>
 
-            <LocationMap
-              location={currentLocation}
-              activeZone={activeZone}
-              items={currentItems}
-              onZone={(zone) => {
-                if (currentLocation.kind === "conex") {
-                  setActiveZone(zone);
-                  setMapInventory({ zone, mapSection: "" });
-                  return;
-                }
-                setActiveZone(activeZone === zone ? "" : zone);
-                setSpaceInventoryOpen(false);
-                setSpaceVisibleCount(18);
-              }}
-              onMapSection={(zone, mapSection) => {
-                setActiveZone(zone);
-                setMapInventory({ zone, mapSection });
-              }}
-            />
-
-            <section className={`inventory-accordion ${spaceInventoryOpen ? "is-open" : ""}`}>
-              <div className="inventory-accordion-heading">
-                <button type="button" onClick={() => setSpaceInventoryOpen((open) => !open)} aria-expanded={spaceInventoryOpen}>
-                  <span className="accordion-arrow" aria-hidden="true">→</span>
-                  <span>
-                    <small>{activeZone || "Entire space"}</small>
-                    <strong>{activeZone ? `Items in ${activeZone}` : `All ${currentLocation.name} inventory`}</strong>
-                  </span>
-                  <em>{countLabel(currentFilteredItems.length, "record")}</em>
-                </button>
-                {activeZone && currentLocation.kind !== "room" && <button className="text-button" type="button" onClick={() => { setActiveZone(""); setSpaceVisibleCount(18); }}>Clear zone</button>}
+              <div className="room-dropdowns" key={selectedSpace}>
+                {Array.from(new Set([...currentLocation.zones, ...currentItems.map(item => item.zone)])).map(zone => {
+                  const entries = currentItems.filter(item => item.zone === zone);
+                  return <details className="room-dropdown" key={zone}>
+                    <summary><strong>{zone}</strong><span>{countLabel(entries.length, "item")}</span></summary>
+                    <div className="compact-list">
+                      {entries.map(item => <button className="compact-row" type="button" key={item.id} onClick={() => openItem(item)}>
+                        {item.photo ? <img className="compact-photo" src={item.photo} alt="" /> : <span />}
+                        <span><strong>{item.name}</strong></span><span className="count">{item.quantity} {item.unit}</span>
+                      </button>)}
+                      {!entries.length && <p className="empty-state">No items recorded yet.</p>}
+                      <button className="button" type="button" onClick={() => openNewItem(selectedSpace, zone)}>Add item</button>
+                    </div>
+                  </details>;
+                })}
               </div>
-
-              {spaceInventoryOpen && (
-                <div className="compact-list">
-                  {currentFilteredItems.slice(0, spaceVisibleCount).map((item) => (
-                    <button className="compact-row" key={item.id} type="button" onClick={() => openItem(item)}>
-                      {item.photo ? <img className="compact-photo" src={item.photo} alt="" /> : <span className="compact-photo compact-photo-empty" aria-hidden="true">Photo needed</span>}
-                      <span className={`status-dot ${statusClass(item.status)}`} aria-hidden="true" />
-                      <span><strong>{item.name}</strong><small>{item.zone}</small></span>
-                      <span className="count"><strong>{item.quantity}</strong><small>{item.unit}</small></span>
-                      <span aria-hidden="true">→</span>
-                    </button>
-                  ))}
-                  <ProgressiveLoadMore visibleCount={spaceVisibleCount} total={currentFilteredItems.length} onLoadMore={() => setSpaceVisibleCount((current) => Math.min(currentFilteredItems.length, current + 18))} />
-                  {!loading && !currentFilteredItems.length && (
-                    <div className="empty-state"><p>No inventory has been placed here yet.</p><button type="button" onClick={() => openNewItem(selectedSpace, activeZone || currentLocation.zones[0])}>Add the first item</button></div>
-                  )}
-                  {loading && <div className="empty-state"><p>Loading inventory…</p></div>}
-                </div>
-              )}
-            </section>
-
+            <details className="mapping-placeholder" key={`mapping-${selectedSpace}`}>
+              <summary><strong>Mapping</strong><span>Under Wrenovation</span></summary>
+              <p>Under Wrenovation</p>
+            </details>
             {currentLocation.kind === "conex" && (
-              <section className="photo-section">
-                <div className="section-heading">
-                  <div><p className="eyebrow">Visual audit</p><h2>Conex source photos</h2></div>
-                  <span>{conexPhotos.length} photographs</span>
-                </div>
+              <details className="photo-section conex-photo-disclosure">
+                <summary className="section-heading">
+                  <strong>Conex source photos</strong>
+                  <span>{conexPhotos.length} photographs · Expand</span>
+                </summary>
                 <div className="photo-grid">
                   {conexPhotos.map((photo, index) => (
                     <button key={photo} type="button" onClick={() => setGalleryIndex(index)}>
@@ -754,7 +584,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-              </section>
+              </details>
             )}
           </section>
         </div>
@@ -764,7 +594,7 @@ export default function Home() {
         <section className="page-section">
           <div className="page-heading">
             <div><p className="eyebrow">Master inventory</p><h1>Every item, one list.</h1></div>
-            <p>Search first, then open any row to update the count, room, exact map position, reorder source, or memory.</p>
+            <p>Search first, then open any row to update the count, room, category, reorder source, or memory.</p>
           </div>
           <section className={`inventory-accordion master-accordion ${masterInventoryOpen ? "is-open" : ""}`}>
             <div className="inventory-accordion-heading">
@@ -798,6 +628,8 @@ export default function Home() {
           </section>
         </section>
       )}
+
+      {view === "stock" && <StockControls items={items} onItem={id => { const item=items.find(i=>i.id===id); if(item)openItem(item); }} />}
 
       {view === "memory" && (
         <section className="page-section memory-page">
@@ -866,6 +698,7 @@ export default function Home() {
             </div>
             {selectedItem.photo && <button className="item-photo" type="button" onClick={() => { const index = conexPhotos.indexOf(selectedItem.photo); if (index >= 0) setGalleryIndex(index); }}><img src={selectedItem.photo} alt={`${selectedItem.name} evidence`} /><span>Open source photo</span></button>}
             {renderItemForm("edit")}
+            <LowStockReport key={selectedItem.id + selectedItem.updatedAt} item={draft} />
             <section className="drawer-memory">
               <p className="eyebrow">Item memory</p>
               <textarea rows={3} value={itemMemory} onChange={(event) => setItemMemory(event.target.value)} placeholder="Log a count, move, substitution, or vendor note…" />

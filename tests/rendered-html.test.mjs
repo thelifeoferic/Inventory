@@ -4,7 +4,7 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
-test("includes the full Hotel Wren mapped inventory experience", async () => {
+test("includes the Hotel Wren inventory experience", async () => {
   const [page, layout, data, migration, hosting] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/layout.tsx", root), "utf8"),
@@ -14,7 +14,7 @@ test("includes the full Hotel Wren mapped inventory experience", async () => {
   ]);
 
   assert.match(layout, /Hotel Wren Inventory/);
-  assert.match(page, /Space maps/);
+  assert.match(page, />Spaces</);
   assert.match(page, /All items/);
   assert.match(page, /Memory/);
   assert.match(page, /Reorder link/);

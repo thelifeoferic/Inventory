@@ -6,7 +6,7 @@ export type LocationDefinition = {
   kind: "conex" | "room" | "shared" | "house";
 };
 
-export const roomInventoryCategories = ["Minibar", "Furnishings", "Fixtures", "Linens"];
+export const roomInventoryCategories = ["Permanent Fixtures", "Mini Bar", "Guest Amenities"];
 
 export const locations: LocationDefinition[] = [
   {
@@ -68,7 +68,7 @@ export const locations: LocationDefinition[] = [
   ...Array.from({ length: 12 }, (_, index) => ({
     name: `ROOM ${String(index + 1).padStart(2, "0")}`,
     group: "Guest rooms" as const,
-    description: "Room-level stock, furnishings and linen records.",
+    description: index < 6 ? "Sunset Deluxe King" : index < 11 ? "Sunrise King" : "ADA",
     zones: roomInventoryCategories,
     kind: "room" as const,
   })),
