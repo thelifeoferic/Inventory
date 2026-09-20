@@ -1,3 +1,4 @@
+import { checklistMinibarSeedItems } from "./minibar-data";
 export type LocationDefinition = {
   name: string;
   group: "Shared spaces" | "Guest rooms" | "Residence";
@@ -6,9 +7,9 @@ export type LocationDefinition = {
   kind: "conex" | "room" | "shared" | "house";
 };
 
-export const roomInventoryCategories = ["Permanent Fixtures", "Mini Bar", "Guest Amenities"];
+export const roomInventoryCategories = ["Permanent Fixtures", "Mini Bar — Basket", "Mini Bar — Fridge", "Guest Amenities"];
 
-export const locations: LocationDefinition[] = [
+const originalLocations: LocationDefinition[] = [
   {
     name: "CONEX",
     group: "Shared spaces",
@@ -20,7 +21,7 @@ export const locations: LocationDefinition[] = [
     name: "WINDSONG",
     group: "Shared spaces",
     description: "Retail, guest pantry and breakfast service inventory.",
-    zones: ["Plumbing Fixtures", "Equipment", "Hardware", "Seating", "Art", "Accessories"],
+    zones: ["Hardware, Fixtures & Furniture", "Products"],
     kind: "shared",
   },
   {
@@ -74,6 +75,15 @@ export const locations: LocationDefinition[] = [
   })),
 ];
 
+export const locations: LocationDefinition[] = originalLocations
+  .filter(location => location.name !== "LAUNDRY ROOM")
+  .map(location => location.name === "POOL ROOM" ? { ...location, name: "POOL ROOM / WINDSONG BACK STOCK", description: "Windsong back stock, water storage and pool-room inventory." }
+    : location.name === "HOUSEKEEPING" ? { ...location, zones: [...location.zones, "Clean linen", "Soiled linen", "Amenities", "Machines", "Housekeeping cart"] } : location)
+  .sort((a, b) => {
+    const rank = (location: LocationDefinition) => location.name === "WINDSONG" ? 0 : location.name === "HOUSEKEEPING" ? 1 : location.group === "Shared spaces" ? 2 : location.group === "Guest rooms" ? 3 : 4;
+    return rank(a) - rank(b);
+  });
+
 export const conexPhotos = [
   "IMG_4282.jpg", "IMG_4283.jpg", "IMG_4284.jpg", "IMG_4285.jpg",
   "IMG_4286.jpg", "IMG_4287.jpg", "IMG_4288.jpg", "IMG_4289.jpg",
@@ -86,7 +96,6 @@ export const conexPhotos = [
 const roomMinibarStandard = [
   { name: "Canyon Coffee", unit: "packets", notes: "Known Hotel Wren room amenity. Confirm the room par and physical count." },
   { name: "Bellocq Tea", unit: "sachets", notes: "Known Hotel Wren room amenity. Confirm varieties, room par and physical count." },
-  { name: "Mountain Valley Spring Water", unit: "bottles", notes: "Brand is present in Hotel Wren stock. Confirm the minibar bottle format and room par." },
 ];
 
 export const roomMinibarSeedItems = Array.from({ length: 12 }, (_, index) => {
@@ -94,7 +103,7 @@ export const roomMinibarSeedItems = Array.from({ length: 12 }, (_, index) => {
   return roomMinibarStandard.map((item) => ({
     ...item,
     space,
-    zone: "Minibar",
+    zone: "Guest Amenities",
     quantity: 0,
     par: 0,
     status: "Count needed",
@@ -126,4 +135,5 @@ export const seedItems = [
   { name: "Tools", space: "CONEX", zone: "Tools shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Stored on the left side of the three-level rear shelving bay." },
   { name: "Electrical, hardware + small parts", space: "CONEX", zone: "Parts shelf", quantity: 0, par: 0, unit: "pieces", status: "Count needed", photo: "/conex/IMG_4317.jpg", notes: "Mixed stock on the back run of the rear shelving bay; itemize during the physical count." },
   ...roomMinibarSeedItems,
+  ...checklistMinibarSeedItems,
 ] as const;

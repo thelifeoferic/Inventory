@@ -7,7 +7,9 @@ const parts = (await readdir(root)).filter(n => /^wren-part-\d+\.json$/.test(n))
 if (!parts.length) throw new Error('Wren upload parts are missing. Upload all files.');
 const data = (await Promise.all(parts.map(async n => JSON.parse(await readFile(resolve(root,n),'utf8')).data))).join('');
 const files = JSON.parse(gunzipSync(Buffer.from(data,'base64')));
+const maintainedSources = new Set(["app/inventory.tsx", "lib/inventory-data.ts"]);
 for (const [name, content] of Object.entries(files)) {
+  if (maintainedSources.has(name)) continue;
   const target = resolve(root, name);
   if (!target.startsWith(resolve(root) + sep)) throw new Error('Invalid source path');
   await mkdir(dirname(target), {recursive:true});

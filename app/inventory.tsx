@@ -129,7 +129,8 @@ function inferConexMapSection(item: { name: string; zone: string; mapSection?: s
 
 function normalizeItem(item: Item): Item {
   const relocatedWater = /^(Cascade Mountain|Mountain Valley Spring) Water Cases$/i.test(item.name);
-  const space = relocatedWater ? "POOL ROOM" : item.space;
+  const originalSpace = relocatedWater ? "POOL ROOM" : item.space;
+  const space = originalSpace === "LAUNDRY ROOM" ? "HOUSEKEEPING" : originalSpace === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : originalSpace;
   const zone = relocatedWater ? "Water storage" : /^ROOM \d+$/.test(space) ? ({ Minibar: "Mini Bar", Furnishings: "Permanent Fixtures", Fixtures: "Permanent Fixtures", Linens: "Guest Amenities" }[item.zone] || item.zone) : normalizeConexZone(item.zone);
   const media = productMedia.find((entry) => entry.matches.test(item.name));
   return {
@@ -177,7 +178,7 @@ const emptyDraft = (space = "CONEX", zone = "Entry", mapSection = ""): ItemDraft
   photo: "",
 });
 
-const groups = ["Shared spaces", "Residence", "Guest rooms"] as const;
+const groups = ["Shared spaces", "Guest rooms", "Residence"] as const;
 
 function countLabel(count: number, singular: string) {
   return `${count} ${count === 1 ? singular : `${singular}s`}`;
@@ -238,14 +239,14 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("spaces");
   const [search, setSearch] = useState("");
   const [spaceFilter, setSpaceFilter] = useState("ALL SPACES");
-  const [selectedSpace, setSelectedSpace] = useState("CONEX");
+  const [selectedSpace, setSelectedSpace] = useState("WINDSONG");
   const [activeZone, setActiveZone] = useState("");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(emptyDraft());
   const [addOpen, setAddOpen] = useState(false);
   const [itemMemory, setItemMemory] = useState("");
   const [generalMemory, setGeneralMemory] = useState("");
-  const [generalMemorySpace, setGeneralMemorySpace] = useState("CONEX");
+  const [generalMemorySpace, setGeneralMemorySpace] = useState("WINDSONG");
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const [mapInventory, setMapInventory] = useState<{ zone: string; mapSection: string } | null>(null);
   const [masterInventoryOpen, setMasterInventoryOpen] = useState(false);
@@ -262,7 +263,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       const data = await response.json();
       revision.current = data.revision;
       setItems((data.items || seededInventory()).map(normalizeItem));
-      setMemories(data.memories || []);
+      setMemories((data.memories || []).map((memory: Memory) => ({ ...memory, space: memory.space === "LAUNDRY ROOM" ? "HOUSEKEEPING" : memory.space === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : memory.space })));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Inventory could not be loaded."); }
     finally { setLoading(false); }
   }
@@ -474,7 +475,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   return (
     <main>
       <header className="topbar">
-        <button className="brand" type="button" onClick={() => { setView("spaces"); setSelectedSpace("CONEX"); }}>
+        <button className="brand" type="button" onClick={() => { setView("spaces"); setSelectedSpace("WINDSONG"); }}>
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
@@ -556,7 +557,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
                     <div className="compact-list">
                       {entries.map(item => <button className="compact-row" type="button" key={item.id} onClick={() => openItem(item)}>
                         {item.photo ? <img className="compact-photo" src={item.photo} alt="" /> : <span />}
-                        <span><strong>{item.name}</strong></span><span className="count">{item.status === "Count needed" ? "Count needed" : `${item.quantity} ${item.unit}`}</span>
+                        <span><strong>{item.name}</strong>{zone.startsWith("Mini Bar —") && <small>Target: {item.par} {item.unit}</small>}</span><span className="count">{item.status === "Count needed" ? "Count needed" : `${item.quantity} ${item.unit}`}</span>
                       </button>)}
                       {!entries.length && <p className="empty-state">No items recorded yet.</p>}
                       <button className="button" type="button" onClick={() => openNewItem(selectedSpace, zone)}>Add item</button>
