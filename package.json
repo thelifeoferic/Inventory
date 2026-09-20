@@ -11,7 +11,10 @@
     "start": "next start",
     "test": "node tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "predev": "node restore-wren.mjs && node scripts/restore-assets.mjs",
+    "prebuild": "node restore-wren.mjs && node scripts/restore-assets.mjs",
+    "pretest": "node restore-wren.mjs && node scripts/restore-assets.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
