@@ -14,3 +14,10 @@ for (const [name, content] of Object.entries(files)) {
   await writeFile(target, Buffer.from(content,'base64'));
 }
 console.log(`Restored ${Object.keys(files).length} Wren source files.`);
+
+// Older GitHub uploads can contain partial copies of the application.
+// Type-check the active application, not archived upload folders.
+const configPath = resolve(root, 'tsconfig.json');
+const config = JSON.parse(await readFile(configPath, 'utf8'));
+config.include = ['next-env.d.ts', 'app/**/*.ts', 'app/**/*.tsx', 'lib/**/*.ts', 'server/**/*.ts', 'types/**/*.d.ts', '.next/types/**/*.ts', '.next/dev/types/**/*.ts'];
+await writeFile(configPath, JSON.stringify(config, null, 2) + '\n');
