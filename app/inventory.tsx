@@ -5,6 +5,7 @@
 import { windsongProductSeedItems } from "@/lib/windsong-products";
 import ManagerInbox from "./manager-inbox";
 import CountItem from "./count-item";
+import Link from "next/link";
 import LowStockReport from "./low-stock-report";
 import StockControls from "./stock-controls";
 
@@ -131,7 +132,7 @@ function inferConexMapSection(item: { name: string; zone: string; mapSection?: s
 function normalizeItem(item: Item): Item {
   const relocatedWater = /^(Cascade Mountain|Mountain Valley Spring) Water Cases$/i.test(item.name);
   const originalSpace = relocatedWater ? "POOL ROOM" : item.space;
-  const space = originalSpace === "LAUNDRY ROOM" ? "HOUSEKEEPING" : originalSpace === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : originalSpace;
+  const space = originalSpace === "LAUNDRY ROOM" ? "HOUSEKEEPING" : originalSpace === "POOL ROOM / WINDSONG BACK STOCK" ? "POOL ROOM" : originalSpace;
   const zone = relocatedWater ? "Water storage" : /^ROOM \d+$/.test(space) ? ({ Minibar: "Mini Bar", Furnishings: "Permanent Fixtures", Fixtures: "Permanent Fixtures", Linens: "Guest Amenities" }[item.zone] || item.zone) : normalizeConexZone(item.zone);
   const media = productMedia.find((entry) => entry.matches.test(item.name));
   return {
@@ -246,6 +247,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [draft, setDraft] = useState<ItemDraft>(emptyDraft());
   const [addOpen, setAddOpen] = useState(false);
   const [countOpen, setCountOpen] = useState(false);
+  const [countItemId, setCountItemId] = useState<number | null>(null);
   const [countSuccess, setCountSuccess] = useState("");
   const [itemMemory, setItemMemory] = useState("");
   const [generalMemory, setGeneralMemory] = useState("");
@@ -266,7 +268,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       const data = await response.json();
       revision.current = data.revision;
       setItems((data.items || seededInventory()).map(normalizeItem));
-      setMemories((data.memories || []).map((memory: Memory) => ({ ...memory, space: memory.space === "LAUNDRY ROOM" ? "HOUSEKEEPING" : memory.space === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : memory.space })));
+      setMemories((data.memories || []).map((memory: Memory) => ({ ...memory, space: memory.space === "LAUNDRY ROOM" ? "HOUSEKEEPING" : memory.space === "POOL ROOM / WINDSONG BACK STOCK" ? "POOL ROOM" : memory.space })));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Inventory could not be loaded."); }
     finally { setLoading(false); }
   }
@@ -500,14 +502,16 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
-        <nav className="topnav" aria-label="Inventory views">
+        <nav className="topnav desktop-inventory-nav" aria-label="Inventory views">
           <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>Spaces</button>
           <button className={view === "items" ? "active" : ""} onClick={() => setView("items")}>All items</button>
           <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
           <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Stock & purchasing{lowStock ? ` (${lowStock})` : ""}</button>
+          <Link className="button" href="/schedule">Schedule</Link>
         </nav>
+        <nav className="mobile-inventory-nav" aria-label="Team pages"><button className={view === "spaces" || view === "items" ? "active" : ""} onClick={() => setView("spaces")}>Inventory</button><Link href="/schedule">Schedule</Link><select aria-label="More inventory views" value={view === "memory" || view === "stock" ? view : ""} onChange={event => { if(event.target.value) setView(event.target.value as "memory" | "stock"); }}><option value="">More</option><option value="memory">Memory</option><option value="stock">Stock & purchasing</option></select></nav>
         <div className="inventory-actions">
-          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
+          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
           <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
         </div>
       </header>
@@ -533,6 +537,17 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <button type="button" onClick={() => void loadData()}>Try again</button>
         </section>
       )}
+
+      {(view === "spaces" || view === "items") && <section className="mobile-count-list" aria-label="Items to count">
+        <h1>Inventory</h1>
+        <p>Find an item and record what’s on hand.</p>
+        {loading ? <p>Loading inventory…</p> : visibleItems.slice(0, masterVisibleCount).map(item => <article key={item.id}>
+          <button className="mobile-item-name" type="button" onClick={() => openItem(item)}><strong>{item.name}</strong><small>{item.space} · {item.zone}</small><span>{item.status === "Count needed" ? "Needs a count" : `${item.quantity} ${item.unit}`}</span></button>
+          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(item.id); setCountOpen(true); }}>Count</button>
+        </article>)}
+        {!loading && !visibleItems.length && <p>No items match. Try another search or space.</p>}
+        <ProgressiveLoadMore visibleCount={masterVisibleCount} total={visibleItems.length} onLoadMore={() => setMasterVisibleCount(current => Math.min(visibleItems.length, current + 30))} />
+      </section>}
 
       {view === "spaces" && (
         <div className="spaces-layout">
@@ -608,7 +623,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       )}
 
       {view === "items" && (
-        <section className="page-section">
+        <section className="page-section desktop-item-page">
           <div className="page-heading">
             <div><p className="eyebrow">Master inventory</p><h1>Every item, one list.</h1></div>
             <p>Search first, then open any row to update the count, room, category, reorder source, or memory.</p>
@@ -730,7 +745,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
         </div>
       )}
 
-      {countOpen && <CountItem items={items} onSave={saveCount} onClose={() => setCountOpen(false)} />}
+      {countOpen && <CountItem items={items} initialItemId={countItemId} onSave={saveCount} onClose={() => setCountOpen(false)} />}
 
       {addOpen && (
         <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}>
