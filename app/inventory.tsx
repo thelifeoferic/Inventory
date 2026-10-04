@@ -4,6 +4,7 @@
 
 import { windsongProductSeedItems } from "@/lib/windsong-products";
 import ManagerInbox from "./manager-inbox";
+import CountItem from "./count-item";
 import LowStockReport from "./low-stock-report";
 import StockControls from "./stock-controls";
 
@@ -244,6 +245,8 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(emptyDraft());
   const [addOpen, setAddOpen] = useState(false);
+  const [countOpen, setCountOpen] = useState(false);
+  const [countSuccess, setCountSuccess] = useState("");
   const [itemMemory, setItemMemory] = useState("");
   const [generalMemory, setGeneralMemory] = useState("");
   const [generalMemorySpace, setGeneralMemorySpace] = useState("WINDSONG");
@@ -298,7 +301,6 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
     });
   }, [items, search, spaceFilter]);
   const lowStock = items.filter((item) => item.par > 0 && item.quantity < item.par).length;
-  const countNeeded = items.filter((item) => item.status === "Count needed").length;
 
   function openItem(item: Item) {
     setSelectedItem(item);
@@ -382,6 +384,25 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
     } finally {
       setSaving(false);
     }
+  }
+
+  async function saveCount(id: number, quantity: number) {
+    const item = items.find(entry => entry.id === id);
+    if (!item) throw new Error("This item is no longer available. Please choose another item.");
+    if (!Number.isFinite(quantity) || quantity < 0) throw new Error("Enter a count of zero or more.");
+    const timestamp = new Date().toISOString();
+    const counted = { ...item, quantity, status: "Confirmed", updatedAt: timestamp };
+    const memory: Memory = {
+      id: memories.reduce((highest, current) => Math.max(highest, current.id), 0) + 1,
+      itemId: item.id, itemName: item.name, space: item.space,
+      note: `Count confirmed: ${quantity} ${item.unit} (previously ${item.quantity}).`,
+      createdBy: displayName, createdAt: timestamp,
+    };
+    setSaving(true);
+    try {
+      await persist(items.map(entry => entry.id === id ? counted : entry), [memory, ...memories]);
+      setCountSuccess(`Count saved: ${item.name} — ${quantity} ${item.unit}.`);
+    } finally { setSaving(false); }
   }
 
   async function addMemory(note: string, space: string, itemId: number | null) {
@@ -485,11 +506,15 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
           <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Stock & purchasing{lowStock ? ` (${lowStock})` : ""}</button>
         </nav>
-        <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
+        <div className="inventory-actions">
+          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
+          <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
+        </div>
       </header>
 
-      <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><button className="button" onClick={() => { setView("items"); setMasterInventoryOpen(true); }}>Notify manager — choose an item</button><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
-      {isAdmin && <ManagerInbox />}
+      <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
+      {isAdmin === true && <ManagerInbox />}
+      {countSuccess && <div className="count-success" role="status">{countSuccess}</div>}
       <section className="searchbar" aria-label="Inventory search">
         <label className="search-field">
           <span className="sr-only">Search inventory</span>
@@ -508,13 +533,6 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <button type="button" onClick={() => void loadData()}>Try again</button>
         </section>
       )}
-
-      <section className="summary-strip">
-        <div><span>Total records</span><strong>{items.length}</strong></div>
-        <div><span>Below par</span><strong>{lowStock}</strong></div>
-        <div><span>Counts needed</span><strong>{countNeeded}</strong></div>
-        <div><span>Spaces</span><strong>{locations.length}</strong></div>
-      </section>
 
       {view === "spaces" && (
         <div className="spaces-layout">
@@ -711,6 +729,8 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           </aside>
         </div>
       )}
+
+      {countOpen && <CountItem items={items} onSave={saveCount} onClose={() => setCountOpen(false)} />}
 
       {addOpen && (
         <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}>
