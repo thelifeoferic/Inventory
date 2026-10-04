@@ -1,0 +1,13 @@
+.inventory-actions { display: flex; gap: 8px; justify-self: end; }
+.count-dialog { border: 1px solid var(--line); color: var(--ink); background: var(--paper); width: min(600px, calc(100% - 32px)); max-height: 85dvh; overflow: auto; padding: 28px; }
+.count-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.count-dialog .drawer-header h2 { margin: 0; }
+.count-field { display: grid; gap: 6px; margin: 16px 0; font-size: 14px; }
+.count-field input, .count-field select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line); }
+.count-results { display: grid; max-height: 40dvh; overflow: auto; margin-top: 20px; }
+.count-choice { display: grid; gap: 4px; text-align: left; background: var(--paper); border: 0; border-bottom: 1px solid var(--line); padding: 14px 8px; }
+.count-choice:hover, .count-choice:focus-visible { background: var(--soft); }
+.count-choice span, .count-hint { font-size: 13px; color: var(--muted); }
+.count-dialog button:disabled { cursor: wait; opacity: .6; }
+.count-success { padding: 12px 32px; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { .inventory-actions { grid-column: 1 / -1; width: 100%; } .inventory-actions .button { flex: 1; } .count-dialog { padding: 20px; } }
