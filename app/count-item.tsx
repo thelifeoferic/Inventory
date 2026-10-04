@@ -5,8 +5,9 @@ import "./count-item.css";
 
 type CountableItem = { id: number; name: string; space: string; zone: string; mapSection: string; quantity: number; unit: string };
 
-export default function CountItem({ items, onSave, onClose }: {
+export default function CountItem({ items, initialItemId = null, onSave, onClose }: {
   items: CountableItem[];
+  initialItemId?: number | null;
   onSave: (id: number, quantity: number) => Promise<void>;
   onClose: () => void;
 }) {
@@ -15,7 +16,7 @@ export default function CountItem({ items, onSave, onClose }: {
   const searchInput = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [space, setSpace] = useState("");
-  const [itemId, setItemId] = useState<number | null>(null);
+  const [itemId, setItemId] = useState<number | null>(initialItemId);
   const [quantity, setQuantity] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
