@@ -77,8 +77,7 @@ const originalLocations: LocationDefinition[] = [
 
 export const locations: LocationDefinition[] = originalLocations
   .filter(location => location.name !== "LAUNDRY ROOM")
-  .map(location => location.name === "POOL ROOM" ? { ...location, name: "POOL ROOM / WINDSONG BACK STOCK", description: "Windsong back stock, water storage and pool-room inventory." }
-    : location.name === "HOUSEKEEPING" ? { ...location, zones: [...location.zones, "Clean linen", "Soiled linen", "Amenities", "Machines", "Housekeeping cart"] } : location)
+  .map(location => location.name === "HOUSEKEEPING" ? { ...location, zones: [...location.zones, "Clean linen", "Soiled linen", "Amenities", "Machines", "Housekeeping cart"] } : location)
   .sort((a, b) => {
     const rank = (location: LocationDefinition) => location.name === "WINDSONG" ? 0 : location.name === "HOUSEKEEPING" ? 1 : location.group === "Shared spaces" ? 2 : location.group === "Guest rooms" ? 3 : 4;
     return rank(a) - rank(b);
