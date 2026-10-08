@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import TeamNav from "./team-nav";
 import { handleApi } from "@/server/vercel-backend";
 import "./welcome.css";
 export const dynamic = "force-dynamic";
@@ -10,10 +11,8 @@ export default async function Page() {
   if (!response.ok) redirect("/login");
   const user = await response.json();
   if (user.mustChange) redirect("/login");
-  return <main className="team-welcome">
+  return <><TeamNav active="home" /><main className="team-welcome">
     <section aria-labelledby="welcome-title">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="welcome-logo" src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
       <p className="eyebrow">THE NEST</p>
       <h1 id="welcome-title">Welcome, {user.displayName}.</h1>
       <p className="welcome-intro">What would you like to do?</p>
@@ -24,5 +23,5 @@ export default async function Page() {
       </nav>
       <form action="/api/logout" method="post"><button className="text-button" type="submit">Sign out</button></form>
     </section>
-  </main>;
+  </main></>;
 }

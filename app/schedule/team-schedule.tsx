@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import TeamNav from '../team-nav';
 import { blankSchedule, currentWeek, dayNames, scheduleMetrics, shiftWeek, validSchedule, type TeamSchedule as Schedule } from '@/lib/team-schedule';
 import './schedule.css';
 const dateLabel=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
@@ -51,8 +51,8 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
   function moveWeek(next:string){if(!editing && next!==week){prepareLoad();setWeek(next);setDay(0);}}
   function shiftClass(value:string){return /^off/i.test(value)?'shift-off':/^(7|9)(:00)?\s*AM/i.test(value)?'shift-morning':value?'shift-late':'';}
   function editButton(){return isManager&&!editing&&!loading&&!error&&<button className="button button-dark" onClick={()=>{setDraft(structuredClone(schedule || blankSchedule()));setEditing(true);setNotice('');}}>{schedule?'Edit schedule':'Create schedule'}</button>;}
-  return <main className="schedule-page">
-    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{!editing&&<Link className="button" href="/">Home</Link>}{editButton()}</header>
+  return <><TeamNav active="schedule" /><main className="schedule-page">
+    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{editButton()}</header>
     <p className="schedule-account">{displayName}{isManager?' · Manager':''}</p>
     <section className="schedule-week" aria-label="Schedule week">
       <button className="button" aria-label="Previous week" disabled={editing||loading} onClick={()=>moveWeek(shiftWeek(week,-7))}>←</button>
@@ -82,5 +82,5 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       {editing&&<details className="schedule-team"><summary>Manage team members</summary>{draft.members.map(member=><div key={member.id}><input aria-label={`Name for ${member.name}`} maxLength={100} disabled={saving} value={member.name} onChange={event=>setDraft(current=>({...current,members:current.members.map(entry=>entry.id===member.id?{...entry,name:event.target.value}:entry)}))}/><button className="button" disabled={saving||draft.members.length===1} onClick={()=>setDraft(current=>({...current,members:current.members.filter(entry=>entry.id!==member.id)}))}>Remove {member.name}</button></div>)}<button className="button" disabled={saving||draft.members.length>=50} onClick={()=>setDraft(current=>({...current,members:[...current.members,{id:crypto.randomUUID(),name:'New team member',shifts:dayNames.map(()=> '')}]}))}>Add team member</button></details>}
       {(editing||shown.notes)&&<section className="schedule-notes"><h2>Team notes</h2>{editing?<textarea aria-label="Team notes" maxLength={3000} rows={3} disabled={saving} value={draft.notes} onChange={event=>setDraft(current=>({...current,notes:event.target.value}))}/>:<p>{shown.notes}</p>}</section>}
     </>}
-  </main>;
+  </main></>;
 }

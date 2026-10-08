@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import TeamNav from '../team-nav';
 import { checklistToday, type ChecklistShift } from '@/lib/checklist-templates';
 import './checklists.css';
 type Task={id:string;label:string;status:'todo'|'done'|'na';note:string;version:number;updated_by:string|null;updated_at:string|null};
@@ -47,8 +47,8 @@ export default function DailyChecklists({isManager,displayName}:{isManager:boole
       const result=await response.json();if(!response.ok)throw new Error(result.error||'Your change was not saved. Please retry.');setData(result);setNotice(action==='submit'?'Shift complete. Thank you.':action==='reopen'?'Shift reopened.':'Saved.');return true;
     }catch(caught){setError(caught instanceof Error?caught.message:'Your change was not saved.');return false;}finally{setSaving(false);}
   }
-  return <main className="checklists-page">
-    <header className="checklists-heading"><div><p className="eyebrow">Hotel Wren · Front desk</p><h1>Daily checklists</h1><p>{displayName}</p></div><Link href="/" className="button">Home</Link></header>
+  return <><TeamNav active="checklists" /><main className="checklists-page">
+    <header className="checklists-heading"><div><p className="eyebrow">Hotel Wren · Front desk</p><h1>Daily checklists</h1><p>{displayName}</p></div></header>
     <section className="checklist-controls" aria-label="Choose checklist"><label>Date<input type="date" value={date} disabled={saving||!!editing} onChange={event=>{if(event.target.value&&event.target.value!==date){prepareLoad();setDate(event.target.value);}}}/></label><div className="checklist-shifts">{(['AM','PM'] as const).map(value=><button key={value} aria-pressed={shift===value} disabled={saving||!!editing} onClick={()=>{if(value!==shift){prepareLoad();setShift(value);}}}>{value} shift</button>)}</div><button className="text-button" disabled={saving||!!editing||loading} onClick={()=>{prepareLoad();setReload(value=>value+1);}}>Refresh</button></section>
     {error&&<div className="checklist-error" role="alert">{error}{editing&&<button className="button" disabled={saving} onClick={()=>{prepareLoad();setReload(value=>value+1);}}>Discard note and reload</button>}</div>}
     <p className="checklist-save-status" role="status">{saving?'Saving…':notice}</p>
@@ -62,5 +62,5 @@ export default function DailyChecklists({isManager,displayName}:{isManager:boole
       {run&&!locked&&<footer className="checklist-finish"><p>{done===tasks.length?'Ready to finish this shift.':'Complete tasks or add a reason when they are not applicable.'}</p><button className="button button-dark" disabled={saving||!!editing||done!==tasks.length||!tasks.length} onClick={()=>void update('submit')}>Complete shift</button></footer>}
       {locked&&isManager&&<button className="button" disabled={saving} onClick={()=>void update('reopen')}>Reopen shift</button>}
     </>}
-  </main>;
+  </main></>;
 }
