@@ -5,7 +5,7 @@
 import { windsongProductSeedItems } from "@/lib/windsong-products";
 import ManagerInbox from "./manager-inbox";
 import CountItem from "./count-item";
-import Link from "next/link";
+import TeamNav from "./team-nav";
 import LowStockReport from "./low-stock-report";
 import StockControls from "./stock-controls";
 
@@ -519,19 +519,13 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
 
   return (
     <main>
-      <header className="topbar">
-        <button className="brand" type="button" onClick={() => { setView("spaces"); }}>
-          <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
-          <span>Inventory</span>
-        </button>
-        <nav className="team-navigation" aria-label="Team pages">
-          <Link href="/">Home</Link><Link href="/schedule">Schedule</Link><Link href="/inventory" aria-current="page">Inventory</Link><Link href="/checklists">Checklists</Link>
-        </nav>
+      <TeamNav active="inventory" />
+      <div className="inventory-toolbar">
         <div className="inventory-actions">
           <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
           <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
         </div>
-      </header>
+      </div>
 
       <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
       <nav className="inventory-view-nav" aria-label="Inventory views">
