@@ -1,0 +1,15 @@
+.team-welcome { min-height:100dvh; display:grid; place-items:center; padding:40px 24px; background:#faf9f5; }
+.team-welcome > section { width:100%; max-width:720px; }
+.welcome-logo { width:150px; height:auto; margin-bottom:32px; }
+.team-welcome h1 { font-size:clamp(26px,5vw,38px); line-height:1.2; margin:12px 0; }
+.welcome-intro { color:var(--muted); margin:0 0 28px; }
+.welcome-choices { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.welcome-choice { display:flex; flex-direction:column; justify-content:center; gap:12px; min-height:155px; padding:26px; border:1px solid #cdc9b8; border-radius:8px; text-decoration:none; background:white; }
+.welcome-choice strong { display:flex; justify-content:space-between; gap:16px; font-size:23px; }
+.welcome-choice > span { font-size:15px; }
+.welcome-choice:hover { border-color:#706e45; background:#f0eee3; }
+.welcome-choice:focus-visible { outline:3px solid #a79150; outline-offset:4px; }
+.welcome-schedule { background:#706e45; color:white; border-color:#706e45; }
+.welcome-schedule:hover { background:#555334; border-color:#555334; }
+.team-welcome form { margin-top:28px; }
+@media(max-width:600px) { .welcome-choices { grid-template-columns:1fr; } .welcome-choice { min-height:130px; padding:24px; } .team-welcome { place-items:start center; padding:40px 20px; } .welcome-logo { width:130px; } }
