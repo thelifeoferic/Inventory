@@ -3,7 +3,7 @@ declare const Deno: {env:{get(name:string):string|undefined};serve(handler:(r:Re
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 export async function handleSchedule(request:Request, url:string, key:string) {
   if(!['GET','PUT'].includes(request.method))return json({error:'Method not allowed.'},405);
-  if(request.method==='PUT'&&request.headers.get('origin')!=='https://inventory-mu-hazel-12.vercel.app')return json({error:'Please submit from the inventory site.'},403);
+  if(request.method==='PUT'&&!['https://inventory-mu-hazel-12.vercel.app','https://team-wren.vercel.app'].includes(request.headers.get('origin')||''))return json({error:'Please submit from the inventory site.'},403);
   const token=request.headers.get('cookie')?.match(/(?:^|;\s*)wren_session=([a-f0-9]{64})(?:;|$)/)?.[1];
   if(!token)return json({error:'Sign in required.'},401);
   const tokenHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),byte=>byte.toString(16).padStart(2,'0')).join('');
