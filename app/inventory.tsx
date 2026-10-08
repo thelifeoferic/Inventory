@@ -238,7 +238,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"home" | "items" | "spaces" | "memory" | "stock">("home");
+  const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("spaces");
   const [search, setSearch] = useState("");
   const [spaceFilter, setSpaceFilter] = useState("ALL SPACES");
   const [selectedSpace, setSelectedSpace] = useState("WINDSONG");
@@ -520,7 +520,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   return (
     <main>
       <header className="topbar">
-        <button className="brand" type="button" onClick={() => { setView("home"); }}>
+        <button className="brand" type="button" onClick={() => { setView("spaces"); }}>
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
@@ -542,7 +542,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       </nav>
       {isAdmin === true && <ManagerInbox />}
       {countSuccess && <div className="count-success" role="status">{countSuccess}</div>}
-      {view !== "home" && <section className="searchbar" aria-label="Inventory search">
+      <section className="searchbar" aria-label="Inventory search">
         <label className="search-field">
           <span className="sr-only">Search inventory</span>
           <input value={search} onChange={(event) => { setSearch(event.target.value); setMasterVisibleCount(30); if (event.target.value) { setView("items");  } }} placeholder="Search item, room, zone, or note" />
@@ -552,7 +552,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           {locations.map((location) => <option key={location.name}>{location.name}</option>)}
         </select>
         <span className="search-result">{visibleItems.length} results</span>
-      </section>}
+      </section>
 
       {error && (
         <section className="error-banner" role="alert">
@@ -561,7 +561,6 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
         </section>
       )}
 
-      {view === "home" && <section className="inventory-landing"><p className="eyebrow">Hotel Wren</p><h1>Inventory</h1><p>Select <strong>See All Inventory</strong> above to browse products and stock, or choose <strong>By space</strong> to count a room.</p></section>}
       {view === "spaces" && <section className="mobile-count-list" aria-label="Inventory spaces">
         <h1>By space</h1>
         <p>Or choose a space to count.</p>
