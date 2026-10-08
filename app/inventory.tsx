@@ -238,7 +238,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("spaces");
+  const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("items");
   const [search, setSearch] = useState("");
   const [spaceFilter, setSpaceFilter] = useState("ALL SPACES");
   const [selectedSpace, setSelectedSpace] = useState("WINDSONG");
@@ -254,7 +254,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [generalMemorySpace, setGeneralMemorySpace] = useState("WINDSONG");
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const [mapInventory, setMapInventory] = useState<{ zone: string; mapSection: string } | null>(null);
-  const [masterInventoryOpen, setMasterInventoryOpen] = useState(false);
+
   const [masterVisibleCount, setMasterVisibleCount] = useState(30);
   const [saving, setSaving] = useState(false);
   const revision = useRef(0);
@@ -302,6 +302,15 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       return matchesSpace && matchesSearch;
     });
   }, [items, search, spaceFilter]);
+  const groupedItems = useMemo(() => {
+    const groups = new Map<string, {key:string;name:string;items:Item[]}>();
+    for (const item of visibleItems) {
+      const key = item.name.trim().toLowerCase().replace(/\s+/g, " ");
+      const group = groups.get(key);
+      if (group) group.items.push(item); else groups.set(key,{key,name:item.name,items:[item]});
+    }
+    return [...groups.values()].sort((a,b) => a.name.localeCompare(b.name));
+  },[visibleItems]);
   const lowStock = items.filter((item) => item.par > 0 && item.quantity < item.par).length;
 
   function openItem(item: Item) {
@@ -502,14 +511,9 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
-        <nav className="topnav desktop-inventory-nav" aria-label="Inventory views">
-          <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>Spaces</button>
-          <button className={view === "items" ? "active" : ""} onClick={() => setView("items")}>All items</button>
-          <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
-          <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Stock & purchasing{lowStock ? ` (${lowStock})` : ""}</button>
-          <Link className="button" href="/schedule">Schedule</Link>
+        <nav className="team-navigation" aria-label="Team pages">
+          <Link href="/">Home</Link><Link href="/schedule">Schedule</Link><Link href="/inventory" aria-current="page">Inventory</Link><Link href="/checklists">Checklists</Link>
         </nav>
-        <nav className="mobile-inventory-nav" aria-label="Team pages"><button className={view === "spaces" || view === "items" ? "active" : ""} onClick={() => setView("spaces")}>Inventory</button><Link href="/schedule">Schedule</Link><select aria-label="More inventory views" value={view === "memory" || view === "stock" ? view : ""} onChange={event => { if(event.target.value) setView(event.target.value as "memory" | "stock"); }}><option value="">More</option><option value="memory">Memory</option><option value="stock">Stock & purchasing</option></select></nav>
         <div className="inventory-actions">
           <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
           <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
@@ -517,12 +521,18 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       </header>
 
       <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
+      <nav className="inventory-view-nav" aria-label="Inventory views">
+        <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>By space</button>
+        <button className={view === "items" ? "active" : ""} onClick={() => { setView("items");  }}>See all inventory</button>
+        <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
+        <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Purchasing{lowStock ? ` (${lowStock})` : ""}</button>
+      </nav>
       {isAdmin === true && <ManagerInbox />}
       {countSuccess && <div className="count-success" role="status">{countSuccess}</div>}
       <section className="searchbar" aria-label="Inventory search">
         <label className="search-field">
           <span className="sr-only">Search inventory</span>
-          <input value={search} onChange={(event) => { setSearch(event.target.value); setMasterVisibleCount(30); if (event.target.value) { setView("items"); setMasterInventoryOpen(true); } }} placeholder="Search item, room, zone, or note" />
+          <input value={search} onChange={(event) => { setSearch(event.target.value); setMasterVisibleCount(30); if (event.target.value) { setView("items");  } }} placeholder="Search item, room, zone, or note" />
         </label>
         <select aria-label="Filter by space" value={spaceFilter} onChange={(event) => { setSpaceFilter(event.target.value); setMasterVisibleCount(30); }}>
           <option value="ALL SPACES">All</option>
@@ -538,15 +548,22 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
         </section>
       )}
 
-      {(view === "spaces" || view === "items") && <section className="mobile-count-list" aria-label="Items to count">
-        <h1>Inventory</h1>
-        <p>Find an item and record what’s on hand.</p>
-        {loading ? <p>Loading inventory…</p> : visibleItems.slice(0, masterVisibleCount).map(item => <article key={item.id}>
-          <button className="mobile-item-name" type="button" onClick={() => openItem(item)}><strong>{item.name}</strong><small>{item.space} · {item.zone}</small><span>{item.status === "Count needed" ? "Needs a count" : `${item.quantity} ${item.unit}`}</span></button>
-          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(item.id); setCountOpen(true); }}>Count</button>
-        </article>)}
-        {!loading && !visibleItems.length && <p>No items match. Try another search or space.</p>}
-        <ProgressiveLoadMore visibleCount={masterVisibleCount} total={visibleItems.length} onLoadMore={() => setMasterVisibleCount(current => Math.min(visibleItems.length, current + 30))} />
+      {view === "spaces" && <section className="mobile-count-list" aria-label="Inventory spaces">
+        <h1><button className="inventory-list-link" onClick={() => {setView("items");}}>See all inventory <span aria-hidden="true">↗</span></button></h1>
+        <p>Or choose a space to count.</p>
+        <div className="mobile-space-picker">{locations.map(location => <button key={location.name} onClick={() => {setSpaceFilter(location.name);setView("items");}}>{location.name}<span aria-hidden="true">↗</span></button>)}</div>
+      </section>}
+      {view === "items" && <section className="grouped-inventory" aria-label="All inventory">
+        <h1>All inventory</h1><p>Choose an item, then its location to record a count.</p>
+        {loading ? <p>Loading inventory…</p> : groupedItems.slice(0,masterVisibleCount).map(group => <details className="inventory-product" key={group.key}>
+          <summary><strong>{group.name}</strong><span>{group.items.length === 1 ? group.items[0].space : `${group.items.length} locations`}</span><span className="disclosure-plus" aria-hidden="true">+</span></summary>
+          <div>{group.items.map(item => <article key={item.id}>
+            <button className="mobile-item-name" type="button" onClick={() => openItem(item)}><strong>{item.space}</strong><small>{item.zone}</small><span>{item.status === "Count needed" ? "Needs a count" : `${item.quantity} ${item.unit}`}</span></button>
+            <button className="button" type="button" onClick={() => {setCountSuccess("");setCountItemId(item.id);setCountOpen(true);}}>Count</button>
+          </article>)}</div>
+        </details>)}
+        {!loading && !groupedItems.length && <p>No items match. Try another search or space.</p>}
+        <ProgressiveLoadMore visibleCount={masterVisibleCount} total={groupedItems.length} onLoadMore={() => setMasterVisibleCount(current => Math.min(groupedItems.length,current+30))} />
       </section>}
 
       {view === "spaces" && (
@@ -620,45 +637,6 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
             )}
           </section>
         </div>
-      )}
-
-      {view === "items" && (
-        <section className="page-section desktop-item-page">
-          <div className="page-heading">
-            <div><p className="eyebrow">Master inventory</p><h1>Every item, one list.</h1></div>
-            <p>Search first, then open any row to update the count, room, category, reorder source, or memory.</p>
-          </div>
-          <section className={`inventory-accordion master-accordion ${masterInventoryOpen ? "is-open" : ""}`}>
-            <div className="inventory-accordion-heading">
-              <button type="button" onClick={() => setMasterInventoryOpen((open) => !open)} aria-expanded={masterInventoryOpen}>
-                <span className="accordion-arrow" aria-hidden="true">→</span>
-                <span><small>Filtered inventory</small><strong>Open item records</strong></span>
-                <em>{countLabel(visibleItems.length, "record")}</em>
-              </button>
-            </div>
-            {masterInventoryOpen && (
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th>Item</th><th>Space / map zone</th><th>On hand</th><th>Par</th><th>Count status</th><th>Reorder</th></tr></thead>
-                  <tbody>
-                    {visibleItems.slice(0, masterVisibleCount).map((item) => (
-                      <tr key={item.id} onClick={() => openItem(item)}>
-                        <td><strong>{item.name}</strong><small>{item.notes}</small></td>
-                        <td><strong>{item.space}</strong><small>{item.zone}</small></td>
-                        <td>{item.status === "Count needed" ? "Count needed" : `${item.quantity} ${item.unit}`}</td>
-                        <td>{item.par || "—"}</td>
-                        <td><span className={`status-label ${statusClass(item.status)}`}>{item.status}</span></td>
-                        <td>{item.reorderUrl ? <a href={item.reorderUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>Open link ↗</a> : "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <ProgressiveLoadMore visibleCount={masterVisibleCount} total={visibleItems.length} onLoadMore={() => setMasterVisibleCount((current) => Math.min(visibleItems.length, current + 30))} />
-                {!loading && !visibleItems.length && <div className="empty-state"><p>No items match this search.</p></div>}
-              </div>
-            )}
-          </section>
-        </section>
       )}
 
       {view === "stock" && <StockControls items={items} onItem={id => { const item=items.find(i=>i.id===id); if(item)openItem(item); }} />}
