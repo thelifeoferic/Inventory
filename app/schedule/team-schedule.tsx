@@ -9,6 +9,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
   const [schedule,setSchedule]=useState<Schedule | null>(null);
   const [draft,setDraft]=useState<Schedule>(blankSchedule);
   const [revision,setRevision]=useState(0);
+  const [updatedAt,setUpdatedAt]=useState<string|null>(null);
   const [editing,setEditing]=useState(false);
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
@@ -22,12 +23,16 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       if(response.status===401){window.location.assign('/login');return;}
       if(!response.ok)throw new Error('The schedule could not be loaded.');
       const data=await response.json();
-      if(active){setSchedule(data.schedule);setRevision(data.revision);}
+      if(active){setSchedule(data.schedule);setRevision(data.revision);setUpdatedAt(data.updatedAt || null);}
     }).catch(()=>{if(active)setError('The schedule could not be loaded. Please retry.');}).finally(()=>{if(active)setLoading(false);});
     return()=>{active=false;};
   },[week,reload]);
   useEffect(()=>{if(!editing)return;const warn=(event:BeforeUnloadEvent)=>event.preventDefault();window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[editing]);
   const shown=editing?draft:schedule;
+  const normalizedName=displayName.trim().toLowerCase().replace(/\s+/g,' ');
+  const exactMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().replace(/\s+/g,' ')===normalizedName)||[];
+  const firstNameMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().split(/\s+/)[0]===normalizedName.split(' ')[0])||[];
+  const mySchedule=exactMatches.length===1?exactMatches[0]:firstNameMatches.length===1?firstNameMatches[0]:null;
   async function save() {
     if(!isManager || saving)return;
     if(!validSchedule(draft)){setError('Give each team member a name and keep entries within the allowed length.');return;}
@@ -36,11 +41,11 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       const response=await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({week,revision,schedule:draft})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error || 'The schedule was not saved. Please retry.');
-      setSchedule(draft);setRevision(data.revision);setEditing(false);setNotice('Schedule saved. The team can now see your changes.');
+      setSchedule(draft);setRevision(data.revision);setUpdatedAt(data.updatedAt || null);setEditing(false);setNotice('Schedule saved. The team can now see your changes.');
     } catch(caught){setError(caught instanceof Error?caught.message:'The schedule was not saved.');}finally{setSaving(false);}
   }
   function updateShift(id:string,index:number,value:string){setDraft(current=>({...current,members:current.members.map(member=>member.id===id?{...member,shifts:member.shifts.map((shift,i)=>i===index?value:shift)}:member)}));}
-  function prepareLoad(){setLoading(true);setError('');setNotice('');setSchedule(null);}
+  function prepareLoad(){setLoading(true);setError('');setNotice('');setSchedule(null);setUpdatedAt(null);}
   function retry(){prepareLoad();setReload(value=>value+1);}
   function moveWeek(next:string){if(!editing && next!==week){prepareLoad();setWeek(next);setDay(0);}}
   function shiftClass(value:string){return /^off/i.test(value)?'shift-off':/^(7|9)(:00)?\s*AM/i.test(value)?'shift-morning':value?'shift-late':'';}
@@ -57,6 +62,12 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
     {error&&<div className="schedule-message" role="alert">{error}{!editing&&<button className="button" onClick={retry}>Retry</button>}{editing&&/changed/i.test(error)&&<button className="button" onClick={()=>{setEditing(false);retry();}}>Discard draft and reload</button>}</div>}
     {notice&&<p role="status">{notice}</p>}
     {loading?<p role="status">Loading schedule…</p>:!shown?<p>No schedule has been published for this week.</p>:<>
+      {!editing&&<section className="personal-schedule" aria-labelledby="personal-schedule-title">
+        <p className="eyebrow">Your week</p><h2 id="personal-schedule-title">{mySchedule?mySchedule.name+'’s schedule':'Your schedule'}</h2>
+        {mySchedule?<div className="personal-shifts">{mySchedule.shifts.map((shift,index)=><div key={index} className={'personal-shift '+shiftClass(shift)}><div><strong>{dayNames[index]}</strong><small>{dateLabel(shiftWeek(week,index))}</small></div><span>{shift||'Not scheduled'}</span></div>)}</div>:<p>No matching team member was found for your account. You can view the full team schedule below.</p>}
+      </section>}
+      <p className="schedule-updated">Last updated: {updatedAt?<time dateTime={updatedAt}>{new Date(updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles',timeZoneName:'short'})}</time>:'Not recorded'}{editing?' · Unsaved changes are not included.':''}</p>
+      {!editing&&<h2 className="full-schedule-title">Full team schedule</h2>}
       {editing&&<div className="schedule-edit-actions"><strong>Editing this week</strong><button className="button" disabled={saving} onClick={()=>{setEditing(false);setError('');}}>Cancel</button><button className="button button-dark" disabled={saving} onClick={()=>void save()}>{saving?'Saving…':'Save schedule'}</button></div>}
       <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small></button>)}</div>
       <section className="schedule-day-card"><h2>{dayNames[day]} · {dateLabel(shiftWeek(week,day))}</h2>
