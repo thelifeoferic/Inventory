@@ -72,3 +72,6 @@
  .personal-shift > div { min-width:100px; }
  .personal-shift > span { text-align:right; }
 }
+
+.schedule-operations { display:none; }
+@media(max-width:700px) { .schedule-operations { display:block; margin:20px 0 28px; } }
