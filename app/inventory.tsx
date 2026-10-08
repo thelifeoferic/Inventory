@@ -6,6 +6,7 @@ import { windsongProductSeedItems } from "@/lib/windsong-products";
 import ManagerInbox from "./manager-inbox";
 import CountItem from "./count-item";
 import TeamNav from "./team-nav";
+import Link from "next/link";
 import LowStockReport from "./low-stock-report";
 import StockControls from "./stock-controls";
 
@@ -522,6 +523,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       <TeamNav active="inventory" />
       <div className="inventory-toolbar">
         <div className="inventory-actions">
+          <Link className="button" href="/inventory/ask">Ask Wren</Link>
           <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
           <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
         </div>
@@ -558,7 +560,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       {view === "spaces" && <section className="mobile-count-list" aria-label="Inventory spaces">
         <h1>By space</h1>
         <p>Or choose a space to count.</p>
-        <div className="mobile-space-picker">{locations.map(location => <button key={location.name} onClick={() => {setSpaceFilter(location.name);setView("items");}}>{location.name}<span aria-hidden="true">↗</span></button>)}</div>
+        <div className="mobile-space-picker">{locations.map(location => <button key={location.name} onClick={() => {setSpaceFilter(location.name);setView("items");}}>{location.name}<span className="wren-chevron" aria-hidden="true"/></button>)}</div>
       </section>}
       {view === "items" && <section className="grouped-inventory" aria-label="All inventory">
         <h1>All inventory</h1><p>Choose an item, then its location to record a count.</p>
