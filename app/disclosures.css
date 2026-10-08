@@ -1,0 +1,10 @@
+/* Suppress browser triangle markers everywhere inside the team platform. */
+main details > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; }
+main details > summary::-webkit-details-marker { display:none; }
+main details > summary::marker { content:''; }
+main details > summary::before { display:none !important; }
+main details > summary::after { content:'' !important; display:block; width:8px; height:8px; flex:0 0 8px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-left:auto; margin-right:5px; }
+main details[open] > summary::after { transform:rotate(225deg); }
+main details > summary .disclosure-plus { display:none; }
+.wren-chevron,.welcome-choice .welcome-arrow.wren-chevron { display:block; width:10px; height:10px; flex:0 0 10px; border-right:1.5px solid currentColor; border-top:1.5px solid currentColor; transform:rotate(45deg); margin-right:5px; color:#898571; }
+main details > summary:focus-visible { outline:2px solid #706e45; outline-offset:3px; }
