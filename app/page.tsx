@@ -17,9 +17,9 @@ export default async function Page() {
       <h1 id="welcome-title">Welcome, {user.displayName}.</h1>
       <p className="welcome-intro">What would you like to do?</p>
       <nav className="welcome-choices" aria-label="Choose your workspace">
-        <Link className="welcome-choice welcome-schedule" href="/schedule"><div><strong>Team Schedule</strong></div><span className="welcome-arrow" aria-hidden="true">↗</span></Link>
-        <Link className="welcome-choice" href="/inventory"><div><strong>Inventory</strong></div><span className="welcome-arrow" aria-hidden="true">↗</span></Link>
-        <Link className="welcome-choice" href="/checklists"><div><strong>Daily Checklists</strong></div><span className="welcome-arrow" aria-hidden="true">↗</span></Link>
+        <Link className="welcome-choice welcome-schedule" href="/schedule"><div><strong>Team Schedule</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
+        <Link className="welcome-choice" href="/inventory"><div><strong>Inventory</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
+        <Link className="welcome-choice" href="/checklists"><div><strong>Daily Checklists</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
       </nav>
       <form action="/api/logout" method="post"><button className="text-button" type="submit">Sign out</button></form>
     </section>
