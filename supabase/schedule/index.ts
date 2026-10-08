@@ -15,10 +15,10 @@ export async function handleSchedule(request:Request, url:string, key:string) {
   if(request.method==='GET') {
     const week=new URL(request.url).searchParams.get('week');
     if(!validWeek(week))return json({error:'Choose a week beginning Sunday.'},400);
-    const result=await fetch(url+'/rest/v1/nest_schedule?week_start=eq.'+week+'&select=body,revision',{headers,signal:AbortSignal.timeout(15000)});
+    const result=await fetch(url+'/rest/v1/nest_schedule?week_start=eq.'+week+'&select=body,revision,updated_at',{headers,signal:AbortSignal.timeout(15000)});
     if(!result.ok)throw new Error('Schedule lookup failed');
     const rows=await result.json();
-    return json({schedule:rows[0]?.body || null,revision:rows[0]?.revision || 0});
+    return json({schedule:rows[0]?.body || null,revision:rows[0]?.revision || 0,updatedAt:rows[0]?.updated_at || null});
   }
   if(user.username!=='eric')return json({error:'Only Eric can edit the team schedule.'},403);
   const text=await request.text();
@@ -32,6 +32,6 @@ export async function handleSchedule(request:Request, url:string, key:string) {
   if(!result.ok)throw new Error('Schedule save failed');
   const rows=await result.json();
   if(!rows.length)return json({error:'This week changed in another session. Discard your draft and reload before editing again.'},409);
-  return json({revision:rows[0].revision});
+  return json({revision:rows[0].revision,updatedAt:rows[0].updated_at});
 }
 Deno.serve(async request=>{try{return await handleSchedule(request,Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);}catch{return json({error:'The schedule could not be saved or loaded. Please retry.'},503);}});

@@ -55,3 +55,20 @@
  .schedule-edit-actions .button { padding:12px 10px; }
  .schedule-team > div { flex-wrap:wrap; }
 }
+
+.personal-schedule { margin:32px 0 20px; }
+.personal-schedule h2 { font:400 28px Georgia,serif; margin:8px 0 20px; }
+.personal-shifts { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
+.personal-shift { padding:18px 12px; border-radius:3px; display:flex; flex-direction:column; gap:22px; }
+.personal-shift > div { display:grid; gap:6px; }
+.personal-shift strong { font-size:13px; }
+.personal-shift small { font-size:12px; color:var(--muted); }
+.personal-shift > span { font-size:15px; line-height:1.5; }
+.schedule-updated { color:var(--muted); font-size:12px; line-height:1.6; margin:18px 0 36px; }
+.full-schedule-title { font-size:20px; font-weight:500; margin-bottom:20px; }
+@media(max-width:900px) {
+ .personal-shifts { grid-template-columns:1fr; gap:5px; }
+ .personal-shift { flex-direction:row; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; }
+ .personal-shift > div { min-width:100px; }
+ .personal-shift > span { text-align:right; }
+}
