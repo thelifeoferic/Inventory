@@ -1,0 +1,16 @@
+.ask-wren { max-width:800px; margin:auto; padding:32px 24px 64px; }
+.ask-wren header { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.ask-wren h1 { font:400 36px Georgia,serif; margin:8px 0; }
+.ask-wren > p { color:var(--muted); line-height:1.6; }
+.ask-wren form { display:grid; gap:12px; margin:28px 0; }
+.ask-wren textarea { padding:16px; border:1px solid var(--line); border-radius:4px; width:100%; }
+.ask-wren form > div { display:flex; gap:12px; flex-wrap:wrap; }
+.voice-button { display:flex; align-items:center; gap:8px; }
+.voice-button[aria-pressed=true] { background:#e9eadf; }
+.ask-wren small { color:var(--muted); font-size:12px; line-height:1.6; }
+.wren-answer { padding-top:20px; border-top:1px solid var(--line); }
+.wren-answer > p { white-space:pre-wrap; line-height:1.75; }
+.wren-answer details { margin:24px 0; }
+.wren-answer summary { padding:16px 0; }
+.wren-answer article { display:grid; gap:6px; padding:16px 0; border-top:1px solid var(--line); font-size:13px; }
+@media(max-width:500px){.ask-wren { padding:24px 16px; }.ask-wren form .button{flex:1;}}
