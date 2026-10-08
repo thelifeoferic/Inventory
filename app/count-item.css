@@ -34,3 +34,8 @@
  .mobile-item-name span { font-size:14px; }
  .manager-inbox { margin:0 16px; }
 }
+
+/* Keep Schedule prominent in both desktop and mobile navigation. */
+.topbar a[href="/schedule"] { background:#706e45; border-color:#706e45; color:#fff; font-weight:700; text-decoration:none; }
+.topbar a[href="/schedule"]:hover { background:#555334; border-color:#555334; color:#fff; }
+.topbar a[href="/schedule"]:focus-visible { outline:3px solid #a79150; outline-offset:3px; }
