@@ -81,3 +81,22 @@
  .inventory-product summary strong { font-size:15px; }
  .grouped-inventory article .button { min-height:44px; }
 }
+
+.inventory-landing { max-width:1000px; margin:auto; padding:48px 32px 64px; }
+.inventory-landing h1 { font:400 36px Georgia,serif; }
+.inventory-landing > p:last-child { max-width:480px; color:var(--muted); line-height:1.7; }
+.inventory-product summary .product-thumbnail { width:56px; height:56px; flex:0 0 56px; object-fit:contain; background:#f5f4ef; border-radius:4px; }
+.inventory-product summary .product-thumbnail-empty { display:grid; place-items:center; color:#9b9789; }
+.inventory-product summary .product-label { flex:1; min-width:0; display:grid; gap:6px; }
+.inventory-product summary .product-label strong { color:var(--ink); overflow-wrap:anywhere; }
+.product-label small { color:var(--muted); font-size:11px; }
+.inventory-product summary .product-stock { display:grid; gap:4px; text-align:right; max-width:35%; }
+.inventory-product summary .product-stock strong { font-size:14px; color:var(--ink); }
+.product-stock small { font-size:11px; }
+@media(max-width:700px) {
+ .inventory-landing { padding:28px 16px; }
+ .inventory-product summary .product-thumbnail { width:44px; height:44px; flex-basis:44px; }
+ .inventory-product summary { gap:10px; }
+ .inventory-product summary .product-stock strong { font-size:12px; }
+ .inventory-product summary .product-stock { max-width:29%; }
+}

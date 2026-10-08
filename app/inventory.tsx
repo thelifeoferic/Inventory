@@ -238,7 +238,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"items" | "spaces" | "memory" | "stock">("items");
+  const [view, setView] = useState<"home" | "items" | "spaces" | "memory" | "stock">("home");
   const [search, setSearch] = useState("");
   const [spaceFilter, setSpaceFilter] = useState("ALL SPACES");
   const [selectedSpace, setSelectedSpace] = useState("WINDSONG");
@@ -309,7 +309,20 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       const group = groups.get(key);
       if (group) group.items.push(item); else groups.set(key,{key,name:item.name,items:[item]});
     }
-    return [...groups.values()].sort((a,b) => a.name.localeCompare(b.name));
+    const priority = (entries:Item[]) => entries.some(item => {
+      if (/\b(art|artwork|painting|print|sculpture|furniture|chair|sofa|table|lamp|mirror|decor)\b/i.test(item.name)) return false;
+      return item.par > 0 || !!item.reorderUrl || /coffee|tea\b|soap|shampoo|conditioner|lotion|paper|tissue|clean|detergent|snack|water|beverage|linen|towel|amenit|supply|supplies/i.test(item.name+' '+item.zone);
+    });
+    return [...groups.values()].map(group => {
+      const totals = new Map<string,number>();
+      let uncounted = 0;
+      for (const item of group.items) {
+        if (item.status === "Count needed") { uncounted++; continue; }
+        totals.set(item.unit,(totals.get(item.unit)||0)+item.quantity);
+      }
+      return {...group, photo:group.items.find(item=>item.photo)?.photo, priority:priority(group.items),
+        stock:[...totals].map(([unit,total])=>`${total.toLocaleString()} ${unit}`).join(' · '),uncounted};
+    }).sort((a,b) => Number(b.priority)-Number(a.priority) || a.name.localeCompare(b.name));
   },[visibleItems]);
   const lowStock = items.filter((item) => item.par > 0 && item.quantity < item.par).length;
 
@@ -507,7 +520,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   return (
     <main>
       <header className="topbar">
-        <button className="brand" type="button" onClick={() => { setView("spaces"); setSelectedSpace("WINDSONG"); }}>
+        <button className="brand" type="button" onClick={() => { setView("home"); }}>
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
@@ -523,13 +536,13 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
       <nav className="inventory-view-nav" aria-label="Inventory views">
         <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>By space</button>
-        <button className={view === "items" ? "active" : ""} onClick={() => { setView("items");  }}>See all inventory</button>
+        <button className={view === "items" ? "active" : ""} onClick={() => { setView("items");  }}>See All Inventory</button>
         <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
         <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Purchasing{lowStock ? ` (${lowStock})` : ""}</button>
       </nav>
       {isAdmin === true && <ManagerInbox />}
       {countSuccess && <div className="count-success" role="status">{countSuccess}</div>}
-      <section className="searchbar" aria-label="Inventory search">
+      {view !== "home" && <section className="searchbar" aria-label="Inventory search">
         <label className="search-field">
           <span className="sr-only">Search inventory</span>
           <input value={search} onChange={(event) => { setSearch(event.target.value); setMasterVisibleCount(30); if (event.target.value) { setView("items");  } }} placeholder="Search item, room, zone, or note" />
@@ -539,7 +552,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           {locations.map((location) => <option key={location.name}>{location.name}</option>)}
         </select>
         <span className="search-result">{visibleItems.length} results</span>
-      </section>
+      </section>}
 
       {error && (
         <section className="error-banner" role="alert">
@@ -548,15 +561,21 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
         </section>
       )}
 
+      {view === "home" && <section className="inventory-landing"><p className="eyebrow">Hotel Wren</p><h1>Inventory</h1><p>Select <strong>See All Inventory</strong> above to browse products and stock, or choose <strong>By space</strong> to count a room.</p></section>}
       {view === "spaces" && <section className="mobile-count-list" aria-label="Inventory spaces">
-        <h1><button className="inventory-list-link" onClick={() => {setView("items");}}>See all inventory <span aria-hidden="true">↗</span></button></h1>
+        <h1>By space</h1>
         <p>Or choose a space to count.</p>
         <div className="mobile-space-picker">{locations.map(location => <button key={location.name} onClick={() => {setSpaceFilter(location.name);setView("items");}}>{location.name}<span aria-hidden="true">↗</span></button>)}</div>
       </section>}
       {view === "items" && <section className="grouped-inventory" aria-label="All inventory">
         <h1>All inventory</h1><p>Choose an item, then its location to record a count.</p>
         {loading ? <p>Loading inventory…</p> : groupedItems.slice(0,masterVisibleCount).map(group => <details className="inventory-product" key={group.key}>
-          <summary><strong>{group.name}</strong><span>{group.items.length === 1 ? group.items[0].space : `${group.items.length} locations`}</span><span className="disclosure-plus" aria-hidden="true">+</span></summary>
+          <summary>
+            {group.photo ? <img className="product-thumbnail" src={group.photo} alt="" loading="lazy" onError={event=>{event.currentTarget.style.visibility="hidden";}}/> : <span className="product-thumbnail product-thumbnail-empty" aria-label="No product photo"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1"><path d="m4 7 8-4 8 4v10l-8 4-8-4V7Zm0 0 8 4 8-4M12 11v10"/></svg></span>}
+            <span className="product-label"><strong>{group.name}</strong><small>{group.items.length === 1 ? group.items[0].space : `${group.items.length} locations`}</small></span>
+            <span className="product-stock">{group.stock ? <><strong>{group.stock}</strong><small>{group.uncounted ? "counted so far" : "in stock"}</small></> : <strong>Count needed</strong>}{group.uncounted > 0 && group.stock && <small>{group.uncounted} {group.uncounted===1?'location':'locations'} to count</small>}</span>
+            <span className="disclosure-plus" aria-hidden="true">+</span>
+          </summary>
           <div>{group.items.map(item => <article key={item.id}>
             <button className="mobile-item-name" type="button" onClick={() => openItem(item)}><strong>{item.space}</strong><small>{item.zone}</small><span>{item.status === "Count needed" ? "Needs a count" : `${item.quantity} ${item.unit}`}</span></button>
             <button className="button" type="button" onClick={() => {setCountSuccess("");setCountItemId(item.id);setCountOpen(true);}}>Count</button>
