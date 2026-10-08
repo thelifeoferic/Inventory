@@ -1,0 +1,36 @@
+.inventory-actions { display: flex; gap: 8px; justify-self: end; }
+.count-dialog { border: 1px solid var(--line); color: var(--ink); background: var(--paper); width: min(600px, calc(100% - 32px)); max-height: 85dvh; overflow: auto; padding: 28px; }
+.count-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.count-dialog .drawer-header h2 { margin: 0; }
+.count-field { display: grid; gap: 6px; margin: 16px 0; font-size: 14px; }
+.count-field input, .count-field select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line); }
+.count-results { display: grid; max-height: 40dvh; overflow: auto; margin-top: 20px; }
+.count-choice { display: grid; gap: 4px; text-align: left; background: var(--paper); border: 0; border-bottom: 1px solid var(--line); padding: 14px 8px; }
+.count-choice:hover, .count-choice:focus-visible { background: var(--soft); }
+.count-choice span, .count-hint { font-size: 13px; color: var(--muted); }
+.count-dialog button:disabled { cursor: wait; opacity: .6; }
+.count-success { padding: 12px 32px; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { .inventory-actions { grid-column: 1 / -1; width: 100%; } .inventory-actions .button { flex: 1; } .count-dialog { padding: 20px; } }
+.mobile-inventory-nav,.mobile-count-list { display:none; }
+@media(max-width:700px) {
+ .topbar .desktop-inventory-nav { display:none; }
+ .topbar { position:static; }
+ .topbar .brand { grid-column:1/-1; }
+ .mobile-inventory-nav { grid-column:1/-1; display:flex; align-items:center; gap:8px; width:100%; }
+ .mobile-inventory-nav button,.mobile-inventory-nav a,.mobile-inventory-nav select { background:white; border:1px solid var(--line); text-decoration:none; padding:12px 10px; text-align:center; flex:1; font-size:14px; min-width:0; }
+ .mobile-inventory-nav button.active { background:var(--soft); }
+ .inventory-actions .button { min-height:48px; }
+ .account-bar { padding:10px 16px; font-size:12px; }
+ .searchbar { padding:16px; gap:10px; }
+ .searchbar .search-result { display:none; }
+ main .spaces-layout,main .desktop-item-page { display:none; }
+ .mobile-count-list { display:block; padding:0 16px 32px; }
+ .mobile-count-list h1 { font-size:24px; margin:16px 0 4px; }
+ .mobile-count-list > p { color:var(--muted); font-size:14px; }
+ .mobile-count-list article { display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding:16px 0; }
+ .mobile-count-list article > .button { min-height:48px; }
+ .mobile-item-name { flex:1; min-width:0; display:grid; gap:5px; text-align:left; border:0; background:white; padding:0; }
+ .mobile-item-name small { font-size:12px; color:var(--muted); }
+ .mobile-item-name span { font-size:14px; }
+ .manager-inbox { margin:0 16px; }
+}

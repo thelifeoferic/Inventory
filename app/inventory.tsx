@@ -4,6 +4,8 @@
 
 import { windsongProductSeedItems } from "@/lib/windsong-products";
 import ManagerInbox from "./manager-inbox";
+import CountItem from "./count-item";
+import Link from "next/link";
 import LowStockReport from "./low-stock-report";
 import StockControls from "./stock-controls";
 
@@ -130,7 +132,7 @@ function inferConexMapSection(item: { name: string; zone: string; mapSection?: s
 function normalizeItem(item: Item): Item {
   const relocatedWater = /^(Cascade Mountain|Mountain Valley Spring) Water Cases$/i.test(item.name);
   const originalSpace = relocatedWater ? "POOL ROOM" : item.space;
-  const space = originalSpace === "LAUNDRY ROOM" ? "HOUSEKEEPING" : originalSpace === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : originalSpace;
+  const space = originalSpace === "LAUNDRY ROOM" ? "HOUSEKEEPING" : originalSpace === "POOL ROOM / WINDSONG BACK STOCK" ? "POOL ROOM" : originalSpace;
   const zone = relocatedWater ? "Water storage" : /^ROOM \d+$/.test(space) ? ({ Minibar: "Mini Bar", Furnishings: "Permanent Fixtures", Fixtures: "Permanent Fixtures", Linens: "Guest Amenities" }[item.zone] || item.zone) : normalizeConexZone(item.zone);
   const media = productMedia.find((entry) => entry.matches.test(item.name));
   return {
@@ -244,6 +246,9 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(emptyDraft());
   const [addOpen, setAddOpen] = useState(false);
+  const [countOpen, setCountOpen] = useState(false);
+  const [countItemId, setCountItemId] = useState<number | null>(null);
+  const [countSuccess, setCountSuccess] = useState("");
   const [itemMemory, setItemMemory] = useState("");
   const [generalMemory, setGeneralMemory] = useState("");
   const [generalMemorySpace, setGeneralMemorySpace] = useState("WINDSONG");
@@ -263,7 +268,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       const data = await response.json();
       revision.current = data.revision;
       setItems((data.items || seededInventory()).map(normalizeItem));
-      setMemories((data.memories || []).map((memory: Memory) => ({ ...memory, space: memory.space === "LAUNDRY ROOM" ? "HOUSEKEEPING" : memory.space === "POOL ROOM" ? "POOL ROOM / WINDSONG BACK STOCK" : memory.space })));
+      setMemories((data.memories || []).map((memory: Memory) => ({ ...memory, space: memory.space === "LAUNDRY ROOM" ? "HOUSEKEEPING" : memory.space === "POOL ROOM / WINDSONG BACK STOCK" ? "POOL ROOM" : memory.space })));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Inventory could not be loaded."); }
     finally { setLoading(false); }
   }
@@ -298,7 +303,6 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
     });
   }, [items, search, spaceFilter]);
   const lowStock = items.filter((item) => item.par > 0 && item.quantity < item.par).length;
-  const countNeeded = items.filter((item) => item.status === "Count needed").length;
 
   function openItem(item: Item) {
     setSelectedItem(item);
@@ -382,6 +386,25 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
     } finally {
       setSaving(false);
     }
+  }
+
+  async function saveCount(id: number, quantity: number) {
+    const item = items.find(entry => entry.id === id);
+    if (!item) throw new Error("This item is no longer available. Please choose another item.");
+    if (!Number.isFinite(quantity) || quantity < 0) throw new Error("Enter a count of zero or more.");
+    const timestamp = new Date().toISOString();
+    const counted = { ...item, quantity, status: "Confirmed", updatedAt: timestamp };
+    const memory: Memory = {
+      id: memories.reduce((highest, current) => Math.max(highest, current.id), 0) + 1,
+      itemId: item.id, itemName: item.name, space: item.space,
+      note: `Count confirmed: ${quantity} ${item.unit} (previously ${item.quantity}).`,
+      createdBy: displayName, createdAt: timestamp,
+    };
+    setSaving(true);
+    try {
+      await persist(items.map(entry => entry.id === id ? counted : entry), [memory, ...memories]);
+      setCountSuccess(`Count saved: ${item.name} — ${quantity} ${item.unit}.`);
+    } finally { setSaving(false); }
   }
 
   async function addMemory(note: string, space: string, itemId: number | null) {
@@ -479,17 +502,23 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           <img src="/hotel-wren-logotype-brown.png" alt="Hotel Wren" />
           <span>Inventory</span>
         </button>
-        <nav className="topnav" aria-label="Inventory views">
+        <nav className="topnav desktop-inventory-nav" aria-label="Inventory views">
           <button className={view === "spaces" ? "active" : ""} onClick={() => setView("spaces")}>Spaces</button>
           <button className={view === "items" ? "active" : ""} onClick={() => setView("items")}>All items</button>
           <button className={view === "memory" ? "active" : ""} onClick={() => setView("memory")}>Memory</button>
           <button className={view === "stock" ? "active" : ""} onClick={() => setView("stock")}>Stock & purchasing{lowStock ? ` (${lowStock})` : ""}</button>
+          <Link className="button" href="/schedule">Schedule</Link>
         </nav>
-        <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
+        <nav className="mobile-inventory-nav" aria-label="Team pages"><button className={view === "spaces" || view === "items" ? "active" : ""} onClick={() => setView("spaces")}>Inventory</button><Link href="/schedule">Schedule</Link><select aria-label="More inventory views" value={view === "memory" || view === "stock" ? view : ""} onChange={event => { if(event.target.value) setView(event.target.value as "memory" | "stock"); }}><option value="">More</option><option value="memory">Memory</option><option value="stock">Stock & purchasing</option></select></nav>
+        <div className="inventory-actions">
+          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
+          <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
+        </div>
       </header>
 
-      <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><button className="button" onClick={() => { setView("items"); setMasterInventoryOpen(true); }}>Notify manager — choose an item</button><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
-      {isAdmin && <ManagerInbox />}
+      <section className="account-bar"><span>{displayName} · {isAdmin ? "Admin" : "Staff"}</span><form action="/api/logout" method="post"><button className="text-button">Sign out</button></form></section>
+      {isAdmin === true && <ManagerInbox />}
+      {countSuccess && <div className="count-success" role="status">{countSuccess}</div>}
       <section className="searchbar" aria-label="Inventory search">
         <label className="search-field">
           <span className="sr-only">Search inventory</span>
@@ -509,12 +538,16 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
         </section>
       )}
 
-      <section className="summary-strip">
-        <div><span>Total records</span><strong>{items.length}</strong></div>
-        <div><span>Below par</span><strong>{lowStock}</strong></div>
-        <div><span>Counts needed</span><strong>{countNeeded}</strong></div>
-        <div><span>Spaces</span><strong>{locations.length}</strong></div>
-      </section>
+      {(view === "spaces" || view === "items") && <section className="mobile-count-list" aria-label="Items to count">
+        <h1>Inventory</h1>
+        <p>Find an item and record what’s on hand.</p>
+        {loading ? <p>Loading inventory…</p> : visibleItems.slice(0, masterVisibleCount).map(item => <article key={item.id}>
+          <button className="mobile-item-name" type="button" onClick={() => openItem(item)}><strong>{item.name}</strong><small>{item.space} · {item.zone}</small><span>{item.status === "Count needed" ? "Needs a count" : `${item.quantity} ${item.unit}`}</span></button>
+          <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(item.id); setCountOpen(true); }}>Count</button>
+        </article>)}
+        {!loading && !visibleItems.length && <p>No items match. Try another search or space.</p>}
+        <ProgressiveLoadMore visibleCount={masterVisibleCount} total={visibleItems.length} onLoadMore={() => setMasterVisibleCount(current => Math.min(visibleItems.length, current + 30))} />
+      </section>}
 
       {view === "spaces" && (
         <div className="spaces-layout">
@@ -590,7 +623,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       )}
 
       {view === "items" && (
-        <section className="page-section">
+        <section className="page-section desktop-item-page">
           <div className="page-heading">
             <div><p className="eyebrow">Master inventory</p><h1>Every item, one list.</h1></div>
             <p>Search first, then open any row to update the count, room, category, reorder source, or memory.</p>
@@ -711,6 +744,8 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
           </aside>
         </div>
       )}
+
+      {countOpen && <CountItem items={items} initialItemId={countItemId} onSave={saveCount} onClose={() => setCountOpen(false)} />}
 
       {addOpen && (
         <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}>
