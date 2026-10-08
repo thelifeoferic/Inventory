@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import './team-nav.css';
+import './disclosures.css';
 
 const destinations = [
   { id: 'home', href: '/', label: 'Home', path: 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9' },
