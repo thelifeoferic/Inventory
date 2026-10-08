@@ -46,7 +46,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
   function shiftClass(value:string){return /^off/i.test(value)?'shift-off':/^(7|9)(:00)?\s*AM/i.test(value)?'shift-morning':value?'shift-late':'';}
   function editButton(){return isManager&&!editing&&!loading&&!error&&<button className="button button-dark" onClick={()=>{setDraft(structuredClone(schedule || blankSchedule()));setEditing(true);setNotice('');}}>{schedule?'Edit schedule':'Create schedule'}</button>;}
   return <main className="schedule-page">
-    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{!editing&&<Link className="button" href="/inventory">Inventory</Link>}{editButton()}</header>
+    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{!editing&&<Link className="button" href="/">Home</Link>}{editButton()}</header>
     <p className="schedule-account">{displayName}{isManager?' · Manager':''}</p>
     <section className="schedule-week" aria-label="Schedule week">
       <button className="button" aria-label="Previous week" disabled={editing||loading} onClick={()=>moveWeek(shiftWeek(week,-7))}>←</button>
