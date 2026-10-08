@@ -30,6 +30,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
   useEffect(()=>{if(!editing)return;const warn=(event:BeforeUnloadEvent)=>event.preventDefault();window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[editing]);
   const shown=editing?draft:schedule;
   const normalizedName=displayName.trim().toLowerCase().replace(/\s+/g,' ');
+  const teamOnly=['jess','devin'].includes(normalizedName.split(' ')[0]);
   const exactMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().replace(/\s+/g,' ')===normalizedName)||[];
   const firstNameMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().split(/\s+/)[0]===normalizedName.split(' ')[0])||[];
   const mySchedule=exactMatches.length===1?exactMatches[0]:firstNameMatches.length===1?firstNameMatches[0]:null;
@@ -62,7 +63,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
     {error&&<div className="schedule-message" role="alert">{error}{!editing&&<button className="button" onClick={retry}>Retry</button>}{editing&&/changed/i.test(error)&&<button className="button" onClick={()=>{setEditing(false);retry();}}>Discard draft and reload</button>}</div>}
     {notice&&<p role="status">{notice}</p>}
     {loading?<p role="status">Loading schedule…</p>:!shown?<p>No schedule has been published for this week.</p>:<>
-      {!editing&&<section className="personal-schedule" aria-labelledby="personal-schedule-title">
+      {!editing&&!teamOnly&&<section className="personal-schedule" aria-labelledby="personal-schedule-title">
         <p className="eyebrow">Your week</p><h2 id="personal-schedule-title">{mySchedule?mySchedule.name+'’s schedule':'Your schedule'}</h2>
         {mySchedule?<div className="personal-shifts">{mySchedule.shifts.map((shift,index)=><div key={index} className={'personal-shift '+shiftClass(shift)}><div><strong>{dayNames[index]}</strong><small>{dateLabel(shiftWeek(week,index))}</small></div><span>{shift||'Not scheduled'}</span></div>)}</div>:<p>No matching team member was found for your account. You can view the full team schedule below.</p>}
       </section>}
