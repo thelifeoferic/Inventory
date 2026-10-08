@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import TeamNav from '../team-nav';
+import Link from 'next/link';
 import { blankSchedule, currentWeek, dayNames, scheduleMetrics, shiftWeek, validSchedule, type TeamSchedule as Schedule } from '@/lib/team-schedule';
 import './schedule.css';
 const dateLabel=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
@@ -52,7 +53,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
   function shiftClass(value:string){return /^off/i.test(value)?'shift-off':/^(7|9)(:00)?\s*AM/i.test(value)?'shift-morning':value?'shift-late':'';}
   function editButton(){return isManager&&!editing&&!loading&&!error&&<button className="button button-dark" onClick={()=>{setDraft(structuredClone(schedule || blankSchedule()));setEditing(true);setNotice('');}}>{schedule?'Edit schedule':'Create schedule'}</button>;}
   return <><TeamNav active="schedule" /><main className="schedule-page">
-    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{editButton()}</header>
+    <header className="schedule-header"><div><p className="eyebrow">Hotel Wren</p><h1>Team schedule</h1></div>{!editing&&<Link className="button" href="/schedule/requests">Scheduling Request</Link>}{editButton()}</header>
     <p className="schedule-account">{displayName}{isManager?' · Manager':''}</p>
     <section className="schedule-week" aria-label="Schedule week">
       <button className="button" aria-label="Previous week" disabled={editing||loading} onClick={()=>moveWeek(shiftWeek(week,-7))}>←</button>
@@ -68,12 +69,13 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
         {mySchedule?<div className="personal-shifts">{mySchedule.shifts.map((shift,index)=><div key={index} className={'personal-shift '+shiftClass(shift)}><div><strong>{dayNames[index]}</strong><small>{dateLabel(shiftWeek(week,index))}</small></div><span>{shift||'Not scheduled'}</span></div>)}</div>:<p>No matching team member was found for your account. You can view the full team schedule below.</p>}
       </section>}
       <p className="schedule-updated">Last updated: {updatedAt?<time dateTime={updatedAt}>{new Date(updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles',timeZoneName:'short'})}</time>:'Not recorded'}{editing?' · Unsaved changes are not included.':''}</p>
+        <details className="schedule-operations"><summary>Occupancy Report</summary>{scheduleMetrics.map(key=><label key={key}>{key}{editing?<input aria-label={`${dayNames[day]} ${key}`} maxLength={80} disabled={saving} value={shown.days[day][key]} onChange={event=>setDraft(current=>({...current,days:current.days.map((entry,i)=>i===day?{...entry,[key]:event.target.value}:entry)}))}/>:<strong>{shown.days[day][key]||'—'}</strong>}</label>)}</details>
       {!editing&&<h2 className="full-schedule-title">Full team schedule</h2>}
       {editing&&<div className="schedule-edit-actions"><strong>Editing this week</strong><button className="button" disabled={saving} onClick={()=>{setEditing(false);setError('');}}>Cancel</button><button className="button button-dark" disabled={saving} onClick={()=>void save()}>{saving?'Saving…':'Save schedule'}</button></div>}
       <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small></button>)}</div>
       <section className="schedule-day-card"><h2>{dayNames[day]} · {dateLabel(shiftWeek(week,day))}</h2>
         {shown.members.map(member=><div className={'schedule-person '+shiftClass(member.shifts[day])} key={member.id}><strong>{member.name}</strong>{editing?<input aria-label={`${member.name} ${dayNames[day]} shift`} maxLength={120} value={member.shifts[day]} disabled={saving} onChange={event=>updateShift(member.id,day,event.target.value)} placeholder="Shift or OFF"/>:<span>{member.shifts[day]||'Not scheduled'}</span>}</div>)}
-        <details className="schedule-operations"><summary>Hotel details</summary>{scheduleMetrics.map(key=><label key={key}>{key}{editing?<input aria-label={`${dayNames[day]} ${key}`} maxLength={80} disabled={saving} value={shown.days[day][key]} onChange={event=>setDraft(current=>({...current,days:current.days.map((entry,i)=>i===day?{...entry,[key]:event.target.value}:entry)}))}/>:<strong>{shown.days[day][key]||'—'}</strong>}</label>)}</details>
+
       </section>
       <div className="schedule-grid"><table><caption>Team schedule · {dateLabel(week)} – {dateLabel(shiftWeek(week,6))}</caption><thead><tr><th scope="col">Team member</th>{dayNames.map((name,index)=><th scope="col" key={name}>{name}<small>{dateLabel(shiftWeek(week,index))}</small></th>)}</tr></thead><tbody>
         {shown.members.map(member=><tr key={member.id}><th scope="row">{member.name}</th>{member.shifts.map((shift,index)=><td className={shiftClass(shift)} key={index}>{editing?<input aria-label={`${member.name} ${dayNames[index]} shift`} maxLength={120} disabled={saving} value={shift} onChange={event=>updateShift(member.id,index,event.target.value)} placeholder="Shift or OFF"/>:shift||'—'}</td>)}</tr>)}
