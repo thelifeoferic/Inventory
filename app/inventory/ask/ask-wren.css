@@ -14,3 +14,12 @@
 .wren-answer summary { padding:16px 0; }
 .wren-answer article { display:grid; gap:6px; padding:16px 0; border-top:1px solid var(--line); font-size:13px; }
 @media(max-width:500px){.ask-wren { padding:24px 16px; }.ask-wren form .button{flex:1;}}
+
+.ask-wren form { padding:28px; background:#f5f0e9; border:1px solid #e6dbcd; border-radius:16px; box-shadow:0 8px 28px #59402d08; }
+.ask-wren form > label { font:400 23px Georgia,serif; color:#62503e; margin-bottom:4px; }
+.ask-wren textarea { background:#fffdf9; border-color:#ded2c2; border-radius:8px; font-size:16px; line-height:1.6; min-height:120px; }
+.ask-wren form .button { border-radius:24px; }
+.ask-wren form .button-dark { background:#725b46; border-color:#725b46; }
+.ask-wren h1 { color:#62503e; }
+.wren-answer { border-top:0; background:#faf9f5; border-radius:12px; padding:24px; }
+@media(max-width:500px){.ask-wren form{padding:20px 16px;border-radius:12px}.ask-wren form .button{min-height:46px}}

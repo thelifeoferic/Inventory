@@ -88,3 +88,11 @@
  .schedule-days [aria-pressed=true] { outline:2px solid #343f20; outline-offset:2px; }
  .schedule-days button.is-today[aria-pressed=true] { background:#50612a; }
 }
+
+@media(min-width:701px) {
+ .schedule-grid .today-label { display:none; }
+ .schedule-grid td.today-column { background:#e0e6c9; box-shadow:inset 2px 0 #65743a,inset -2px 0 #65743a; }
+ .schedule-grid tbody tr:last-child td.today-column { border-bottom:2px solid #65743a; }
+}
+@media(min-width:761px) { .personal-shift .today-label { display:none; } }
+.schedule-edit-actions { position:static; }
