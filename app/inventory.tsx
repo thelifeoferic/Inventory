@@ -523,7 +523,7 @@ export default function Inventory({ isAdmin, displayName }: { isAdmin: boolean; 
       <TeamNav active="inventory" />
       <div className="inventory-toolbar">
         <div className="inventory-actions">
-          <Link className="button" href="/inventory/ask">Ask Wren</Link>
+          <Link className="button maria-launch" href="/inventory/ask">Ask Maria</Link>
           <button className="button" type="button" onClick={() => { setCountSuccess(""); setCountItemId(null); setCountOpen(true); }} disabled={loading || saving}>Count item</button>
           <button className="button button-dark" type="button" onClick={() => openNewItem()} disabled={loading}>Add item</button>
         </div>
