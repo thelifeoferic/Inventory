@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<footer className="team-footer"><span>Hotel Wren</span><p>The Nest · Our team, together.</p></footer></body></html>;
+  return <html lang="en"><body>{children}<footer className="team-footer"><span>Hotel Wren</span><p>Where did all the egg cups go?</p></footer></body></html>;
 }
