@@ -75,3 +75,16 @@
 
 .schedule-operations { display:none; }
 @media(max-width:700px) { .schedule-operations { display:block; margin:20px 0 28px; } }
+
+/* Today is independent of the day selected for viewing. */
+.today-label { display:inline-block; margin-left:7px; font:600 9px/1.4 Arial,sans-serif; letter-spacing:.07em; text-transform:uppercase; }
+.personal-shift.is-today { background:#d4ddb6; color:#303b20; box-shadow:inset 4px 0 #65743a; }
+.personal-shift.is-today small { color:#46512e; }
+.schedule-grid thead th.is-today { background:#65743a; color:#fff; }
+.schedule-grid thead .today-label { display:block; margin:3px 0; }
+@media(max-width:700px) {
+ .schedule-days button.is-today { background:#65743a; color:#fff; border-color:#65743a; font-weight:600; }
+ .schedule-days .today-label { display:block; margin:5px 0 0; font-size:8px; letter-spacing:.04em; }
+ .schedule-days [aria-pressed=true] { outline:2px solid #343f20; outline-offset:2px; }
+ .schedule-days button.is-today[aria-pressed=true] { background:#50612a; }
+}
