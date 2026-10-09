@@ -5,8 +5,17 @@ import Link from 'next/link';
 import { blankSchedule, currentWeek, dayNames, scheduleMetrics, shiftWeek, validSchedule, type TeamSchedule as Schedule } from '@/lib/team-schedule';
 import './schedule.css';
 const dateLabel=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+const hotelToday=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export default function TeamSchedule({isManager,displayName}:{isManager:boolean;displayName:string}) {
   const [week,setWeek]=useState(currentWeek);
+  const [today,setToday]=useState('');
+  useEffect(()=>{
+    const refresh=()=>setToday(hotelToday());
+    refresh();
+    const timer=window.setInterval(refresh,60000);
+    window.addEventListener('focus',refresh);
+    return()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh);};
+  },[]);
   const [schedule,setSchedule]=useState<Schedule | null>(null);
   const [draft,setDraft]=useState<Schedule>(blankSchedule);
   const [revision,setRevision]=useState(0);
@@ -66,19 +75,19 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
     {loading?<p role="status">Loading schedule…</p>:!shown?<p>No schedule has been published for this week.</p>:<>
       {!editing&&!teamOnly&&<section className="personal-schedule" aria-labelledby="personal-schedule-title">
         <p className="eyebrow">Your week</p><h2 id="personal-schedule-title">{mySchedule?mySchedule.name+'’s schedule':'Your schedule'}</h2>
-        {mySchedule?<div className="personal-shifts">{mySchedule.shifts.map((shift,index)=><div key={index} className={'personal-shift '+shiftClass(shift)}><div><strong>{dayNames[index]}</strong><small>{dateLabel(shiftWeek(week,index))}</small></div><span>{shift||'Not scheduled'}</span></div>)}</div>:<p>No matching team member was found for your account. You can view the full team schedule below.</p>}
+        {mySchedule?<div className="personal-shifts">{mySchedule.shifts.map((shift,index)=><div key={index} aria-current={shiftWeek(week,index)===today?'date':undefined} className={'personal-shift '+shiftClass(shift)+(shiftWeek(week,index)===today?' is-today':'')}><div><strong>{dayNames[index]}{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}</strong><small>{dateLabel(shiftWeek(week,index))}</small></div><span>{shift||'Not scheduled'}</span></div>)}</div>:<p>No matching team member was found for your account. You can view the full team schedule below.</p>}
       </section>}
       <p className="schedule-updated">Last updated: {updatedAt?<time dateTime={updatedAt}>{new Date(updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles',timeZoneName:'short'})}</time>:'Not recorded'}{editing?' · Unsaved changes are not included.':''}</p>
 
       {!editing&&<h2 className="full-schedule-title">Full team schedule</h2>}
       {editing&&<div className="schedule-edit-actions"><strong>Editing this week</strong><button className="button" disabled={saving} onClick={()=>{setEditing(false);setError('');}}>Cancel</button><button className="button button-dark" disabled={saving} onClick={()=>void save()}>{saving?'Saving…':'Save schedule'}</button></div>}
-      <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small></button>)}</div>
+      <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-current={shiftWeek(week,index)===today?'date':undefined} className={shiftWeek(week,index)===today?'is-today':undefined} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small>{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}</button>)}</div>
         <details className="schedule-operations"><summary>Occupancy Report</summary>{scheduleMetrics.map(key=><label key={key}>{key}{editing?<input aria-label={`${dayNames[day]} ${key}`} maxLength={80} disabled={saving} value={shown.days[day][key]} onChange={event=>setDraft(current=>({...current,days:current.days.map((entry,i)=>i===day?{...entry,[key]:event.target.value}:entry)}))}/>:<strong>{shown.days[day][key]||'—'}</strong>}</label>)}</details>
       <section className="schedule-day-card"><h2>{dayNames[day]} · {dateLabel(shiftWeek(week,day))}</h2>
         {shown.members.map(member=><div className={'schedule-person '+shiftClass(member.shifts[day])} key={member.id}><strong>{member.name}</strong>{editing?<input aria-label={`${member.name} ${dayNames[day]} shift`} maxLength={120} value={member.shifts[day]} disabled={saving} onChange={event=>updateShift(member.id,day,event.target.value)} placeholder="Shift or OFF"/>:<span>{member.shifts[day]||'Not scheduled'}</span>}</div>)}
 
       </section>
-      <div className="schedule-grid"><table><caption>Team Schedule · {dateLabel(week)} – {dateLabel(shiftWeek(week,6))}</caption><thead><tr><th scope="col">Team member</th>{dayNames.map((name,index)=><th scope="col" key={name}>{name}<small>{dateLabel(shiftWeek(week,index))}</small></th>)}</tr></thead><tbody>
+      <div className="schedule-grid"><table><caption>Team Schedule · {dateLabel(week)} – {dateLabel(shiftWeek(week,6))}</caption><thead><tr><th scope="col">Team member</th>{dayNames.map((name,index)=><th scope="col" key={name} className={shiftWeek(week,index)===today?'is-today':undefined} aria-current={shiftWeek(week,index)===today?'date':undefined}>{name}{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}<small>{dateLabel(shiftWeek(week,index))}</small></th>)}</tr></thead><tbody>
         {shown.members.map(member=><tr key={member.id}><th scope="row">{member.name}</th>{member.shifts.map((shift,index)=><td className={shiftClass(shift)} key={index}>{editing?<input aria-label={`${member.name} ${dayNames[index]} shift`} maxLength={120} disabled={saving} value={shift} onChange={event=>updateShift(member.id,index,event.target.value)} placeholder="Shift or OFF"/>:shift||'—'}</td>)}</tr>)}
         {scheduleMetrics.map(key=><tr className="schedule-metric" key={key}><th scope="row">{key}</th>{shown.days.map((entry,index)=><td key={index}>{editing?<input aria-label={`${dayNames[index]} ${key}`} maxLength={80} disabled={saving} value={entry[key]} onChange={event=>setDraft(current=>({...current,days:current.days.map((value,i)=>i===index?{...value,[key]:event.target.value}:value)}))}/>:entry[key]||'—'}</td>)}</tr>)}
       </tbody></table></div>
