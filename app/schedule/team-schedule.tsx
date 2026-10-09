@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { blankSchedule, currentWeek, dayNames, scheduleMetrics, shiftWeek, validSchedule, type TeamSchedule as Schedule } from '@/lib/team-schedule';
 import './schedule.css';
 const dateLabel=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+export function shiftStartMinutes(shift:string){
+  const text=shift.trim();
+  if(!text || /^off\b/i.test(text))return 1441;
+  const match=text.match(/^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?(?=\s|$|[–—-])/i);
+  if(!match)return 1440;
+  const hour=Number(match[1]),minute=Number(match[2]||0);
+  if(hour<1||hour>12||minute>59)return 1440;
+  return (hour%12+(match[3].toLowerCase()==='p'?12:0))*60+minute;
+}
 const hotelToday=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export default function TeamSchedule({isManager,displayName}:{isManager:boolean;displayName:string}) {
   const [week,setWeek]=useState(currentWeek);
@@ -84,7 +93,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-current={shiftWeek(week,index)===today?'date':undefined} className={shiftWeek(week,index)===today?'is-today':undefined} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small>{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}</button>)}</div>
         <details className="schedule-operations"><summary>Occupancy Report</summary>{scheduleMetrics.map(key=><label key={key}>{key}{editing?<input aria-label={`${dayNames[day]} ${key}`} maxLength={80} disabled={saving} value={shown.days[day][key]} onChange={event=>setDraft(current=>({...current,days:current.days.map((entry,i)=>i===day?{...entry,[key]:event.target.value}:entry)}))}/>:<strong>{shown.days[day][key]||'—'}</strong>}</label>)}</details>
       <section className="schedule-day-card"><h2>{dayNames[day]} · {dateLabel(shiftWeek(week,day))}</h2>
-        {shown.members.map(member=><div className={'schedule-person '+shiftClass(member.shifts[day])} key={member.id}><strong>{member.name}</strong>{editing?<input aria-label={`${member.name} ${dayNames[day]} shift`} maxLength={120} value={member.shifts[day]} disabled={saving} onChange={event=>updateShift(member.id,day,event.target.value)} placeholder="Shift or OFF"/>:<span>{member.shifts[day]||'Not scheduled'}</span>}</div>)}
+        {(editing?shown.members:[...shown.members].sort((a,b)=>shiftStartMinutes(a.shifts[day])-shiftStartMinutes(b.shifts[day]))).map(member=><div className={'schedule-person '+shiftClass(member.shifts[day])} key={member.id}><strong>{member.name}</strong>{editing?<input aria-label={`${member.name} ${dayNames[day]} shift`} maxLength={120} value={member.shifts[day]} disabled={saving} onChange={event=>updateShift(member.id,day,event.target.value)} placeholder="Shift or OFF"/>:<span>{member.shifts[day]||'Not scheduled'}</span>}</div>)}
 
       </section>
       <div className="schedule-grid"><table><caption>Team Schedule · {dateLabel(week)} – {dateLabel(shiftWeek(week,6))}</caption><thead><tr><th scope="col">Team member</th>{dayNames.map((name,index)=><th scope="col" key={name} className={shiftWeek(week,index)===today?'is-today':undefined} aria-current={shiftWeek(week,index)===today?'date':undefined}>{name}{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}<small>{dateLabel(shiftWeek(week,index))}</small></th>)}</tr></thead><tbody>
