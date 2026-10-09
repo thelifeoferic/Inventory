@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./platform.css";
 
 export const metadata: Metadata = {
   title: "Hotel Wren Inventory",
@@ -13,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}<footer className="team-footer"><span>Hotel Wren</span><p>The Nest · Our team, together.</p></footer></body></html>;
 }
