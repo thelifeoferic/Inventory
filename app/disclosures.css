@@ -8,3 +8,10 @@ main details[open] > summary::after { transform:rotate(225deg); }
 main details > summary .disclosure-plus { display:none; }
 .wren-chevron,.welcome-choice .welcome-arrow.wren-chevron { display:block; width:10px; height:10px; flex:0 0 10px; border-right:1.5px solid currentColor; border-top:1.5px solid currentColor; transform:rotate(45deg); margin-right:5px; color:#898571; }
 main details > summary:focus-visible { outline:2px solid #706e45; outline-offset:3px; }
+
+/* Keep category totals aligned, independent of the category label length. */
+main details.room-dropdown > summary { display:grid; grid-template-columns:minmax(0,1fr) 8ch 13px; gap:16px; }
+main details.room-dropdown > summary > strong { min-width:0; overflow-wrap:anywhere; }
+main details.room-dropdown > summary > span { margin-left:0; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+main details.room-dropdown > summary::after { margin-left:0; justify-self:end; }
+@media(max-width:600px) { main details.room-dropdown > summary { gap:12px; } }
