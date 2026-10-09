@@ -4,12 +4,12 @@ export async function handleApi(request: Request) {
   try {
     const url = new URL(request.url);
     const path = url.pathname;
-    if (!/^\/api\/(session|login|logout|password|inventory|notifications|schedule|checklists|scheduling-requests)$/.test(path)) return Response.json({error:'Not found'},{status:404});
+    if (!/^\/api\/(session|login|logout|password|inventory|notifications|schedule|checklists|scheduling-requests|repairs)$/.test(path)) return Response.json({error:'Not found'},{status:404});
     const headers = new Headers();
     for (const name of ['cookie','origin','content-type']) {
       const value=request.headers.get(name); if(value) headers.set(name,value);
     }
-    const response=await fetch((path === "/api/scheduling-requests" ? backend.replace("nest-api", "nest-scheduling-requests") : path === "/api/checklists" ? backend.replace("nest-api", "nest-checklists") : path === "/api/schedule" ? backend.replace("nest-api", "nest-schedule") : backend)+path+url.search,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:await request.arrayBuffer(),cache:'no-store',redirect:'manual',signal:AbortSignal.timeout(25000)});
+    const response=await fetch((path === "/api/repairs" ? backend.replace("nest-api", "nest-repairs") : path === "/api/scheduling-requests" ? backend.replace("nest-api", "nest-scheduling-requests") : path === "/api/checklists" ? backend.replace("nest-api", "nest-checklists") : path === "/api/schedule" ? backend.replace("nest-api", "nest-schedule") : backend)+path+url.search,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:await request.arrayBuffer(),cache:'no-store',redirect:'manual',signal:AbortSignal.timeout(25000)});
     const outputHeaders=new Headers({'Cache-Control':'no-store'});
     for(const name of ['content-type','set-cookie','location']){const value=response.headers.get(name);if(value)outputHeaders.set(name,value);}
     return new Response(response.body,{status:response.status,headers:outputHeaders});
