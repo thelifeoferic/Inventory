@@ -21,6 +21,7 @@ export default async function Page() {
         <Link className="welcome-choice" href="/inventory"><div><strong>Inventory</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
         <Link className="welcome-choice" href="/checklists"><div><strong>Daily Checklists</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
         <Link className="welcome-choice" href="/repairs"><div><strong>Repair Request</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
+        <Link className="welcome-choice" href="/projects"><div><strong>Projects</strong></div><span className="welcome-arrow wren-chevron" aria-hidden="true"></span></Link>
       </nav>
       <form action="/api/logout" method="post"><button className="text-button" type="submit">Sign out</button></form>
     </section>
