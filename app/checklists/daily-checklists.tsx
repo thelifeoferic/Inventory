@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import TeamNav from '../team-nav';
+import SheetConnection from './sheet-connection';
 import { checklistToday, type ChecklistShift } from '@/lib/checklist-templates';
 import './checklists.css';
 type Task={id:string;label:string;status:'todo'|'done'|'na';note:string;version:number;updated_by:string|null;updated_at:string|null};
@@ -34,6 +35,13 @@ export default function DailyChecklists({isManager,displayName}:{isManager:boole
     return()=>{active=false;};
   },[date,shift,reload]);
   useEffect(()=>{if(!editing)return;const warn=(event:BeforeUnloadEvent)=>event.preventDefault();window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[editing]);
+  useEffect(()=>{
+    if(saving||editing||loading)return;
+    let active=true;
+    const refresh=async()=>{try{const r=await fetch(`/api/checklists?date=${date}&shift=${shift}`,{cache:'no-store'});if(r.ok){const next=await r.json();if(active)setData(next);}}catch{/* Keep the current checklist available. */}};
+    const timer=window.setInterval(()=>void refresh(),30000);window.addEventListener('focus',refresh);
+    return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',refresh);};
+  },[date,shift,saving,editing,loading]);
   const run=data?.run;
   const tasks:Task[]=run?.tasks || data?.template.map(task=>({...task,status:'todo' as const,note:'',version:0,updated_by:null,updated_at:null})) || [];
   const done=tasks.filter(task=>task.status!=='todo').length;
@@ -50,6 +58,7 @@ export default function DailyChecklists({isManager,displayName}:{isManager:boole
   return <><TeamNav active="checklists" /><main className="checklists-page">
     <header className="checklists-heading"><div><p className="eyebrow">Hotel Wren · Front desk</p><h1>Daily checklists</h1><p>{displayName}</p></div></header>
     <section className="checklist-controls" aria-label="Choose checklist"><label>Date<input type="date" value={date} disabled={saving||!!editing} onChange={event=>{if(event.target.value&&event.target.value!==date){prepareLoad();setDate(event.target.value);}}}/></label><div className="checklist-shifts">{(['AM','PM'] as const).map(value=><button key={value} aria-pressed={shift===value} disabled={saving||!!editing} onClick={()=>{if(value!==shift){prepareLoad();setShift(value);}}}>{value} shift</button>)}</div><button className="text-button" disabled={saving||!!editing||loading} onClick={()=>{prepareLoad();setReload(value=>value+1);}}>Refresh</button></section>
+    <SheetConnection date={date} shift={shift} isManager={isManager}/>
     {error&&<div className="checklist-error" role="alert">{error}{editing&&<button className="button" disabled={saving} onClick={()=>{prepareLoad();setReload(value=>value+1);}}>Discard note and reload</button>}</div>}
     <p className="checklist-save-status" role="status">{saving?'Saving…':notice}</p>
     {loading?<p>Loading checklist…</p>:data&&<>

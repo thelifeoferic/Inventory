@@ -48,3 +48,9 @@
  .checklist-progress span { font-size:12px; white-space:nowrap; }
  .checklist-finish > .button { width:100%; min-height:48px; }
 }
+
+.checklist-sheet-connection { padding:14px 18px; margin:16px 0; background:#f6f7ef; border:1px solid #e1e3d7; border-radius:6px; font-size:12px; line-height:1.7; color:#656c55; }
+.checklist-sheet-connection summary { padding:12px 0; }
+.checklist-sheet-connection a { text-decoration:underline; }
+.checklist-sheet-connection textarea { display:block; width:100%; margin:16px 0; font:12px monospace; padding:12px; border:1px solid #d8dccd; }
+.checklist-sheet-connection .text-button { display:block; margin-top:16px; }
