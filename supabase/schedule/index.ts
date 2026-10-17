@@ -24,7 +24,7 @@ export async function handleSchedule(request:Request, url:string, key:string) {
     if(!result.ok)throw new Error('Schedule lookup failed');
     const rows=await result.json();
     if(labor){
-      const rateResponse=await fetch(url+'/rest/v1/nest_labor_rates?select=member_id,effective_from,hourly_rate,unpaid_break_minutes',{headers,signal:AbortSignal.timeout(15000)});
+      const rateResponse=await fetch(url+'/rest/v1/nest_labor_rates?select=member_id,effective_from,hourly_rate,unpaid_break_minutes,compensation_type',{headers,signal:AbortSignal.timeout(15000)});
       if(!rateResponse.ok)throw new Error('Labor lookup failed');
       const rates=await rateResponse.json();
       return json({labor:rows[0]?.body?estimateLabor(rows[0].body,week,rates):null,updatedAt:rows[0]?.updated_at||null});
