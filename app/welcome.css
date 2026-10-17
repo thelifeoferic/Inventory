@@ -17,3 +17,14 @@
 .team-welcome form .text-button { color:var(--muted); font-size:13px; }
 @media(max-width:600px) { .team-welcome { padding:36px 24px; } .welcome-logo { width:130px; margin-bottom:44px; } .welcome-intro { margin-bottom:30px; } .welcome-choice { padding:26px 0; gap:18px; } .welcome-choice strong { font-size:27px; } .welcome-choice > div > span { font-size:13px; } }
 @media(prefers-reduced-motion:reduce) { .welcome-choice { transition:none; } }
+
+.team-welcome { background:#706e45; color:#fffdf4; }
+.team-welcome .eyebrow,.team-welcome .welcome-intro { color:#eeeddc; }
+.welcome-choices { border-color:#ffffff40; }
+.welcome-choice { padding-left:18px; padding-right:18px; border-color:#ffffff40; }
+.welcome-schedule { background:#ffffff10; }
+.welcome-schedule strong,.welcome-schedule .welcome-arrow,.welcome-choice .welcome-arrow { color:#fffdf4; }
+.welcome-choice:hover { background:#ffffff16; }
+.welcome-choice:hover strong,.welcome-choice:hover .welcome-arrow { color:#fffdf4; }
+.welcome-choice:focus-visible { outline-color:#fffdf4; }
+.team-welcome form .text-button { color:#eeeddc; }

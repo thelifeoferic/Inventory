@@ -5,3 +5,7 @@ body > main { width:100%; flex:1; }
 .team-footer p { font-size:11px; letter-spacing:.04em; margin:0; }
 html { scroll-padding-top:190px; }
 @media(max-width:760px) { .team-footer { padding:24px 20px; flex-direction:column; align-items:flex-start; gap:10px; } }
+
+:root { --paper:#faf9f3; --soft:#edf0e4; --line:#d4d8c7; }
+.team-footer { background:#424c36; border-color:#424c36; color:#e1e6d7; }
+.team-footer > span { color:#fffdf4; }

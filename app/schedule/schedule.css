@@ -88,3 +88,27 @@
 }
 @media(min-width:761px) { .personal-shift .today-label { display:none; } }
 .schedule-edit-actions { position:static; }
+
+.schedule-header { background:#706e45; color:#fffdf4; padding:28px; border-radius:8px; }
+.schedule-header .eyebrow { color:#eeeddc; }
+.schedule-header .button { background:#f8f6ec; color:#42472f; border-color:#e9e6d2; }
+.schedule-header .button-dark { background:#42472f; color:#fffdf4; border-color:#42472f; }
+.schedule-week { background:#e7eadc; border:1px solid #d5dbc5; padding:16px; border-radius:6px; }
+.schedule-grid { background:#fffdf7; }
+.schedule-grid thead th { background:#dce2c9; color:#39412b; }
+.schedule-operations { background:#e7eadc; padding:0 16px 12px; border-radius:6px; }
+.labor-summary { margin:24px 0 36px; padding:28px; background:#424c36; color:#fffdf4; border-radius:8px; }
+.labor-summary header h2 { font:400 30px Georgia,serif; margin:8px 0; }
+.labor-summary header p { margin:8px 0; }
+.labor-summary .eyebrow { color:#dce4c9; }
+.labor-totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; padding:24px 0; }
+.labor-totals div { display:grid; gap:8px; }
+.labor-totals span { font-size:13px; color:#e0e6d5; }
+.labor-totals strong { font:400 clamp(25px,4vw,40px) Georgia,serif; }
+.labor-caption { color:#e0e6d5; font-size:12px; max-width:800px; }
+.labor-summary summary { cursor:pointer; padding:18px 0 8px; }
+.labor-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; margin:20px 0; }
+.labor-days > div { display:grid; gap:8px; padding:12px 8px; background:#ffffff10; font-size:12px; border-radius:4px; }
+.labor-members > div { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px; border-top:1px solid #ffffff30; padding:16px 0; font-size:14px; }
+.labor-members small { grid-column:1/-1; color:#ece6bf; line-height:1.7; }
+@media(max-width:700px){.schedule-header{padding:22px 18px;}.schedule-week{padding:12px 8px;}.labor-summary{padding:22px 18px;}.labor-totals{gap:14px;}.labor-days{grid-template-columns:repeat(2,minmax(0,1fr));}.labor-members > div{grid-template-columns:1fr auto;}.labor-members > div > strong{grid-column:1/-1;}}

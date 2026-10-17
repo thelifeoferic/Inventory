@@ -4,6 +4,7 @@ import TeamNav from '../team-nav';
 import Link from 'next/link';
 import { blankSchedule, currentWeek, dayNames, scheduleMetrics, shiftWeek, validSchedule, type TeamSchedule as Schedule } from '@/lib/team-schedule';
 import './schedule.css';
+import LaborSummary from './labor-summary';
 const dateLabel=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
 export function shiftStartMinutes(shift:string){
   const text=shift.trim();
@@ -25,6 +26,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
     window.addEventListener('focus',refresh);
     return()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh);};
   },[]);
+  const [canViewLabor,setCanViewLabor]=useState(false);
   const [schedule,setSchedule]=useState<Schedule | null>(null);
   const [draft,setDraft]=useState<Schedule>(blankSchedule);
   const [revision,setRevision]=useState(0);
@@ -42,14 +44,14 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       if(response.status===401){window.location.assign('/login');return;}
       if(!response.ok)throw new Error('The schedule could not be loaded.');
       const data=await response.json();
-      if(active){setSchedule(data.schedule);setRevision(data.revision);setUpdatedAt(data.updatedAt || null);}
+      if(active){setCanViewLabor(data.canViewLabor===true);setSchedule(data.schedule);setRevision(data.revision);setUpdatedAt(data.updatedAt || null);}
     }).catch(()=>{if(active)setError('The schedule could not be loaded. Please retry.');}).finally(()=>{if(active)setLoading(false);});
     return()=>{active=false;};
   },[week,reload]);
   useEffect(()=>{if(!editing)return;const warn=(event:BeforeUnloadEvent)=>event.preventDefault();window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[editing]);
   const shown=editing?draft:schedule;
   const normalizedName=displayName.trim().toLowerCase().replace(/\s+/g,' ');
-  const teamOnly=['jess','devin'].includes(normalizedName.split(' ')[0]);
+  const teamOnly=['jess','devin','melvin'].includes(normalizedName.split(' ')[0]);
   const exactMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().replace(/\s+/g,' ')===normalizedName)||[];
   const firstNameMatches=shown?.members.filter(member=>member.name.trim().toLowerCase().split(/\s+/)[0]===normalizedName.split(' ')[0])||[];
   const mySchedule=exactMatches.length===1?exactMatches[0]:firstNameMatches.length===1?firstNameMatches[0]:null;
@@ -88,6 +90,7 @@ export default function TeamSchedule({isManager,displayName}:{isManager:boolean;
       </section>}
       <p className="schedule-updated">Last updated: {updatedAt?<time dateTime={updatedAt}>{new Date(updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles',timeZoneName:'short'})}</time>:'Not recorded'}{editing?' · Unsaved changes are not included.':''}</p>
 
+      {canViewLabor&&!editing&&<LaborSummary key={week} week={week} revision={revision} />}
       {!editing&&<h2 className="full-schedule-title">Full team schedule</h2>}
       {editing&&<div className="schedule-edit-actions"><strong>Editing this week</strong><button className="button" disabled={saving} onClick={()=>{setEditing(false);setError('');}}>Cancel</button><button className="button button-dark" disabled={saving} onClick={()=>void save()}>{saving?'Saving…':'Save schedule'}</button></div>}
       <div className="schedule-days" aria-label="Choose a day">{dayNames.map((name,index)=><button key={name} aria-current={shiftWeek(week,index)===today?'date':undefined} className={shiftWeek(week,index)===today?'is-today':undefined} aria-pressed={day===index} onClick={()=>setDay(index)}>{name.slice(0,3)}<small>{Number(shiftWeek(week,index).slice(-2))}</small>{shiftWeek(week,index)===today&&<span className="today-label">Today</span>}</button>)}</div>
