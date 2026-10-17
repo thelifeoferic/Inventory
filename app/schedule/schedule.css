@@ -17,7 +17,7 @@
 .schedule-grid small { display:block; font-weight:400; }
 .schedule-grid input { width:100%; min-width:100px; padding:9px 5px; border:1px solid var(--line); }
 .shift-off { background:#f0f0ed; color:#64645c; }
-.shift-morning { background:#e5efdf; }
+.shift-morning { background:#eeeddf; }
 .shift-late { background:#f8e3df; }
 .schedule-metric th,.schedule-operations label { text-transform:capitalize; }
 .schedule-metric { background:#faf9f5; }
@@ -92,20 +92,20 @@
 .schedule-header { background:#706e45; color:#fffdf4; padding:28px; border-radius:8px; }
 .schedule-header .eyebrow { color:#eeeddc; }
 .schedule-header .button { background:#f8f6ec; color:#42472f; border-color:#e9e6d2; }
-.schedule-header .button-dark { background:#42472f; color:#fffdf4; border-color:#42472f; }
-.schedule-week { background:#e7eadc; border:1px solid #d5dbc5; padding:16px; border-radius:6px; }
+.schedule-header .button-dark { background:#fffdf4; color:#4c473e; border-color:#fffdf4; }
+.schedule-week { background:#f3f1e9; border:1px solid #dedccf; padding:16px; border-radius:6px; }
 .schedule-grid { background:#fffdf7; }
-.schedule-grid thead th { background:#dce2c9; color:#39412b; }
-.schedule-operations { background:#e7eadc; padding:0 16px 12px; border-radius:6px; }
-.labor-summary { margin:24px 0 36px; padding:28px; background:#424c36; color:#fffdf4; border-radius:8px; }
+.schedule-grid thead th { background:#f3f1e9; color:#4c473e; }
+.schedule-operations { background:#f3f1e9; padding:0 16px 12px; border-radius:6px; }
+.labor-summary { margin:24px 0 36px; padding:28px; background:var(--wren-olive); color:#fffdf4; border-radius:8px; }
 .labor-summary header h2 { font:400 30px Georgia,serif; margin:8px 0; }
 .labor-summary header p { margin:8px 0; }
-.labor-summary .eyebrow { color:#dce4c9; }
+.labor-summary .eyebrow { color:#fffdf4; }
 .labor-totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; padding:24px 0; }
 .labor-totals div { display:grid; gap:8px; }
-.labor-totals span { font-size:13px; color:#e0e6d5; }
+.labor-totals span { font-size:13px; color:#fffdf4; }
 .labor-totals strong { font:400 clamp(25px,4vw,40px) Georgia,serif; }
-.labor-caption { color:#e0e6d5; font-size:12px; max-width:800px; }
+.labor-caption { color:#fffdf4; font-size:12px; max-width:800px; }
 .labor-summary summary { cursor:pointer; padding:18px 0 8px; }
 .labor-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; margin:20px 0; }
 .labor-days > div { display:grid; gap:8px; padding:12px 8px; background:#ffffff10; font-size:12px; border-radius:4px; }
