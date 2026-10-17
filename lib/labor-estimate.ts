@@ -1,7 +1,7 @@
 import type { TeamSchedule } from './team-schedule';
 export type LaborRate = {member_id:string;effective_from:string;hourly_rate:number;unpaid_break_minutes:number|null;compensation_type?:'hourly'|'salary'};
 export function shiftMinutes(shift:string):number|null {
-  if(!shift.trim() || /^off\b/i.test(shift.trim()))return 0;
+  if(!shift.trim() || /^(off|out)\b/i.test(shift.trim()))return 0;
   const match=shift.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*[–—-]\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
   if(!match)return null;
   const minutes=(h:string,m:string|undefined,p:string)=>Number(h)<1||Number(h)>12||Number(m||0)>59?NaN:(Number(h)%12+(p.toUpperCase()==='PM'?12:0))*60+Number(m||0);

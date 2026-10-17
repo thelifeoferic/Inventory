@@ -112,3 +112,20 @@
 .labor-members > div { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px; border-top:1px solid #ffffff30; padding:16px 0; font-size:14px; }
 .labor-members small { grid-column:1/-1; color:#ece6bf; line-height:1.7; }
 @media(max-width:700px){.schedule-header{padding:22px 18px;}.schedule-week{padding:12px 8px;}.labor-summary{padding:22px 18px;}.labor-totals{gap:14px;}.labor-days{grid-template-columns:repeat(2,minmax(0,1fr));}.labor-members > div{grid-template-columns:1fr auto;}.labor-members > div > strong{grid-column:1/-1;}}
+
+/* A compact summary, with supporting detail available on demand. */
+.labor-summary { display:grid; grid-template-columns:minmax(180px,1fr) minmax(260px,1fr); align-items:center; gap:8px 24px; margin:20px 0 24px; padding:16px 20px; border-radius:6px; }
+.labor-summary header h2 { font-size:20px; margin:0 0 4px; }
+.labor-summary header p { margin:0; font-size:10px; }
+.labor-totals { padding:0; gap:20px; }
+.labor-totals div { gap:3px; }
+.labor-totals span { font-size:11px; }
+.labor-totals strong { font-size:24px; }
+.labor-summary > details { grid-column:1/-1; }
+.labor-summary summary { padding:5px 0 0; font-size:12px; }
+@media(max-width:700px) {
+ .labor-summary { grid-template-columns:1fr; gap:12px; padding:14px 16px; }
+ .labor-summary header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+ .labor-summary header h2 { font-size:18px; margin:0; }
+ .labor-totals strong { font-size:23px; }
+}
